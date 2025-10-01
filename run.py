@@ -1,4 +1,5 @@
 import pandas as pd
+from connector import HookPandas
 
 def main():
 
@@ -10,9 +11,15 @@ def main():
 	    "score": [85.5, 90.2, 76.8, 88.0, 92.3]
 	}
 
-	df = pd.DataFrame(data)
+	conn = HookPandas()
+	conn.connect()
 
-	print(df.to_json(orient='records'))
+	df = pd.DataFrame(data)
+	conn.writer \
+ 	.option("path_or_buf", "hihi.csv") \
+ 	.option("sep", ";") \
+ 	.option("header", True) \
+	.csv(df)
 
 if __name__ == "__main__":
 	main()
