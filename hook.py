@@ -19,7 +19,8 @@ class HookPandasWriter:
 class HookPandasReader:
 
 	def __init__(self):
-		self.csv = pd.read_csv
+		self._options = dict()
+		self.csv = lambda : pd.read_csv(**self._options)
 
 	def option(self, option_key, option_value):
 		self._options.update({
@@ -33,11 +34,7 @@ class HookPandasReader:
 
 class HookPandas:
 
-	def __init__(self):
-		pass
-
 	def connect(self):
-
 		self.writer = HookPandasWriter()
 		self.reader = HookPandasReader()
-
+		return self
