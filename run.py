@@ -1,22 +1,15 @@
-from hook import HookPandas
-from ingester import IngesterPandas
-from persister import PersisterPandas
-from transformer import TransformerPandas
+from pipeline import Pipeline
+from step import StepPandas, StepOther
 
 def main():
-    input_file_name = "datasets/Vendas.csv"
-    output_file_name = "datasets/Vendas_out.csv"
-    hook = HookPandas()
-    ingester = IngesterPandas(hook, input_file_name)
-    persister = PersisterPandas(hook, output_file_name)
-    transformer = TransformerPandas()
+    pipeline = Pipeline()
+    step = StepPandas()
+    other_step = StepOther()
 
-    df = ingester.ingest()
-    print(df, df.columns, len(df))
+    pipeline.add_step(other_step).add_step(step).add_step(other_step)
 
-    df = transformer.set_df(df).transform()
-    print(df, df.columns, len(df))
-    persister.persist(df)
+    for step in pipeline:
+        step.run()
 
 if __name__ == "__main__":
     main()
