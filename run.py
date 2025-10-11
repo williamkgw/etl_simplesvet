@@ -1,5 +1,6 @@
-from pipeline import Pipeline
-from step import StepPandas, StepOther
+from etl_simplesvet.pipeline import Pipeline
+from etl_simplesvet.steps.step_pandas import StepPandas
+from etl_simplesvet.steps.step_other import StepOther
 
 def main():
     pipeline = Pipeline()

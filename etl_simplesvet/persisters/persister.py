@@ -1,6 +1,7 @@
+from etl_simplesvet.persister import Persister
 import pandas as pd
 
-class PersisterPandas:
+class PersisterPandas(Persister):
 
 	def __init__(self, hook, file_name):
 		self._hook=hook.connect()
