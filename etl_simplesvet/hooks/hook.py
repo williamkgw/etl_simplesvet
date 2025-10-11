@@ -1,3 +1,4 @@
+from etl_simplesvet.hook import Hook
 import pandas as pd
 
 class HookPandasWriter:
@@ -32,7 +33,7 @@ class HookPandasReader:
 		self._options.update(options_dict)
 		return self
 
-class HookPandas:
+class HookPandas(Hook):
 
 	def connect(self):
 		self.writer = HookPandasWriter()
