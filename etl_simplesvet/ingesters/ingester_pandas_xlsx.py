@@ -2,15 +2,12 @@ import pandas as pd
 
 from etl_simplesvet.ingester import Ingester
 
-class IngesterPandasCSV(Ingester):
+class IngesterPandasXLSX(Ingester):
 
     def __init__(self, file_name):
+        self._file_name=file_name
         self._reader_kwargs = {
-            "filepath_or_buffer": file_name,
-            "thousands": ".",
-            "decimal": ",",
-            "sep": ";",
-            "encoding": "latin1"
+            "io": file_name
         }
 
     def pass_options(self, **kwargs):
@@ -18,8 +15,7 @@ class IngesterPandasCSV(Ingester):
         return self
 
     def _read(self):
-        df = pd.read_csv(**self._reader_kwargs)
-        return df
+        return pd.read_excel(**self._reader_kwargs)
 
     def ingest(self):
         return self._read()

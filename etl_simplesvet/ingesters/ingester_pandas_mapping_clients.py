@@ -1,12 +1,11 @@
-from etl_simplesvet.ingester import Ingester
+from etl_simplesvet.ingesters.ingester_pandas_xlsx import IngesterPandasXLSX
 
-class IngesterPandasMappingClients(Ingester):
+class IngesterPandasMappingClients(IngesterPandasXLSX):
 
-    def __init__(self, hook, file_name):
-        self._hook=hook.connect()
+    def __init__(self, file_name):
+        super().__init__(file_name)
         self._file_name=file_name
 
-    def _configure_hook(self):
         MAPPING_COLUMNS = {
             "Origem": str,
             "Grupo": str
@@ -14,16 +13,15 @@ class IngesterPandasMappingClients(Ingester):
 
         mapping_columns_keys = list(MAPPING_COLUMNS.keys())
 
-        return self._hook \
-                .reader \
-                .option("io", self._file_name) \
-                .option("index_col", mapping_columns_keys[0]) \
-                .option("usecols", mapping_columns_keys) \
-                .option("dtype", MAPPING_COLUMNS)
+        self._options = {
+            "index_col": mapping_columns_keys[0],
+            "usecols": mapping_columns_keys,
+            "dtype": MAPPING_COLUMNS
+        }
 
     def ingest(self):
-        df =  self \
-            ._configure_hook() \
-            .xlsx()
+        df = super() \
+            .pass_options(**self._options) \
+            ._read()
 
         return df

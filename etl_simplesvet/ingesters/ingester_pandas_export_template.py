@@ -1,47 +1,45 @@
 from pandas import NA
 
-from etl_simplesvet.ingesters.ingester_pandas_csv import IngesterPandasCSV
+from etl_simplesvet.ingesters.ingester_pandas_xlsx import IngesterPandasXLSX
 
-def get_necessary_cols():
-    is_necessary_columns = {
-        "ID do Item":True,
-        "Mês":True,
-        "Ano":True,
-        "Medição":True,
-        "Fx Verde Inf/Previsto":True,
-        "Fx Verde Sup":True,
-        "Fx Vermelha Inf":True,
-        "Fx Vermelha Sup":True,
-        "Fx Cliente Inf":True,
-        "Fx Cliente Sup":True,
-        "Item":True,
-        "Indicador":True,
-        "Usuário":True,
-        "Tipo":True,
-        "Auxiliar":True,
-        "Totalizado":True,
-        "Medido":True,
-        "Calendário":True
-    }
+class IngesterPandasExportTemplate(IngesterPandasXLSX):
 
-    necessary_cols = tuple(key for key, value in is_necessary_columns.items() if value)
-    return necessary_cols
-
-class IngesterPandasExportTemplate(IngesterPandasCSV):
-
-    def __init__(self, hook, file_name):
-        self._hook=hook
+    def __init__(self, file_name):
+        super().__init__(file_name)
         self._file_name=file_name
 
+        necessary_columns = self.__get_necessary_cols()
 
-    def _configure_hook(self):
-        necessary_columns = get_necessary_cols()
+        self._options = {
+            "index_col": necessary_columns[0],
+            "usecols": necessary_columns
+        }
 
-        return self._hook \
-                .reader \
-                .option("io", self._file_name) \
-                .option("index_col", necessary_columns[0]) \
-                .option("usecols", necessary_columns)
+    def __get_necessary_cols(self):
+        is_necessary_columns = {
+            "ID do Item": True,
+            "Mês": True,
+            "Ano": True,
+            "Medição": True,
+            "Fx Verde Inf/Previsto": True,
+            "Fx Verde Sup": True,
+            "Fx Vermelha Inf": True,
+            "Fx Vermelha Sup": True,
+            "Fx Cliente Inf": True,
+            "Fx Cliente Sup": True,
+            "Item": True,
+            "Indicador": True,
+            "Usuário": True,
+            "Tipo": True,
+            "Auxiliar": True,
+            "Totalizado": True,
+            "Medido": True,
+            "Calendário": True
+        }
+
+        necessary_cols = tuple(key for key, value in is_necessary_columns.items() if value)
+        return necessary_cols
+
     def _treat_frame(self, df):
         df = df.copy()
 
@@ -50,9 +48,9 @@ class IngesterPandasExportTemplate(IngesterPandasCSV):
 
 
     def ingest(self):
-        df = self \
-            ._configure_hook() \
-            .xlsx() \
+        df = super() \
+            .pass_options(**self._options) \
+            ._read() \
             .pipe(self._treat_frame)
 
         return df

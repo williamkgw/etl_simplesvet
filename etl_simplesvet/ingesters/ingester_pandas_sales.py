@@ -5,11 +5,10 @@ from etl_simplesvet.ingesters.ingester_pandas_csv import IngesterPandasCSV
 
 class IngesterPandasSales(IngesterPandasCSV):
 
-    def __init__(self, hook, file_name, end_date):
-        self._hook=hook.connect()
+    def __init__(self, file_name, end_date):
+        super().__init__(file_name)
         self._file_name=file_name
         self._end_date=end_date
-
 
     def _fill_missing_code(self, df):
         df = df.copy()
@@ -49,8 +48,7 @@ class IngesterPandasSales(IngesterPandasCSV):
 
     def ingest(self):
         df = super() \
-            ._configure_hook() \
-            .csv() \
+            .ingest() \
             .pipe(self._treat_frame)
 
         return df
