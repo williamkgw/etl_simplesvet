@@ -1,5 +1,5 @@
 from etl_simplesvet.hooks.hook import HookPandas
-from etl_simplesvet.ingesters.ingester import IngesterPandas
+from etl_simplesvet.ingesters.ingester_pandas_csv import IngesterPandasCSV
 from etl_simplesvet.persisters.persister import PersisterPandas
 from etl_simplesvet.transformers.transformer import TransformerPandas
 from etl_simplesvet.step import Step
@@ -9,7 +9,7 @@ class StepPandas(Step):
         input_file_name = "datasets/Vendas.csv"
         output_file_name = "datasets/Vendas_out.csv"
         hook = HookPandas()
-        ingester = IngesterPandas(hook, input_file_name)
+        ingester = IngesterPandasCSV(input_file_name)
         persister = PersisterPandas(hook, output_file_name)
         transformer = TransformerPandas()
 
