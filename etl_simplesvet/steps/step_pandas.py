@@ -5,7 +5,7 @@ from etl_simplesvet.transformers.transformer import TransformerPandas
 from etl_simplesvet.step import Step
 
 class StepPandas(Step):
-    def run(self):
+    def run(self, **kwargs):
         input_file_name = "datasets/Vendas.csv"
         output_file_name = "datasets/Vendas_out.csv"
         ingester = IngesterPandasCSV(input_file_name)

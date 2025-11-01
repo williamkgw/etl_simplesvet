@@ -1,6 +1,6 @@
 from etl_simplesvet.step import Step
 
 class StepOther(Step):
-    def run(self):
+    def run(self, **kwargs):
         print("Other Step to run")
 
