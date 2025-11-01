@@ -15,3 +15,9 @@ class Pipeline:
     def add_step(self, step):
         self.__steps.append(step)
         return self
+
+    def run(self):
+        ctx = dict()
+        for step in self:
+            ctx = step.run(**ctx)
+

@@ -2,6 +2,6 @@ from abc import ABC, abstractmethod
 
 class Step(ABC):
    @abstractmethod
-   def run():
+   def run(self, **kwargs):
        pass
 
