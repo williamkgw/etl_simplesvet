@@ -17,7 +17,12 @@ class Pipeline:
         return self
 
     def run(self):
-        ctx = dict()
+        pipeline_ctx = dict()
+        step_ctx = dict()
+
         for step in self:
-            ctx = step.run(**ctx)
+            step_ctx = step.run(**step_ctx)
+            pipeline_ctx.update({step.__class__.__name__: step_ctx})
+
+        return pipeline_ctx
 

@@ -196,5 +196,6 @@ class  StepTransformPandasDataAnalysisSales(Step):
             "inadimplencia": inadimplencia,
             "clients_df": clients_df,
             "mapping_clients_df": mapping_clients_df,
-            "end_date": end_date
+            "end_date": end_date,
+            **kwargs
         }

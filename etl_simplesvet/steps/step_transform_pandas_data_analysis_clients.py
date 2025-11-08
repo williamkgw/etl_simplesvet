@@ -102,5 +102,6 @@ class StepTransformPandasDataAnalysisClients(Step):
                 "agg_clientes": agg_clientes,
                 "agg_clientes_total": agg_clientes_total,
                 "agg_v_clientes": agg_v_clientes,
-                "clients_df": clients_df
+                "clients_df": clients_df,
+                **kwargs
         }
