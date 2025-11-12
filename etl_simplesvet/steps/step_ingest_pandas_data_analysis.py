@@ -10,7 +10,7 @@ from etl_simplesvet.step import Step
 class StepIngestPandasDataAnalysis(Step):
     def run(self, **kwargs):
 
-        end_date = datetime.strptime("2026-01-01", "%Y-%m-%d")
+        end_date = datetime.strptime("2025-05-01", "%Y-%m-%d")
         sales_df = IngesterPandasSales("datasets/Vendas.csv", end_date).ingest()
         clients_df = IngesterPandasClients("datasets/Clientes.csv", end_date).ingest()
         mapping_sales_df = IngesterPandasMapping("datasets/new_mapping.xlsx").ingest()

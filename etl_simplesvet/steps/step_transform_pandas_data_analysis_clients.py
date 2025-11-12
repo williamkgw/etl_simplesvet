@@ -2,19 +2,19 @@ import pandas as pd
 
 from etl_simplesvet.step import Step
 
-def _test_mapping_clientes(mapping_clientes_df):
+def _test_mapping_clients(mapping_clients_df):
     # removing empty rows
-    missing_mapping_clientes_df = mapping_clientes_df[mapping_clientes_df.isna().all(axis=1)]
-    mapping_clientes_df = mapping_clientes_df.dropna(how = 'all', axis = 0)
+    missing_mapping_clients_df = mapping_clients_df[mapping_clients_df.isna().all(axis=1)]
+    mapping_clients_df = mapping_clients_df.dropna(how = 'all', axis = 0)
 
     # configuring the dataframes to catch case sensitive
-    mapping_clientes_df.index = mapping_clientes_df.index.str.lower()
+    mapping_clients_df.index = mapping_clients_df.index.str.lower()
 
     # removing duplicated index
-    mapping_clientes_duplicated_df = mapping_clientes_df[mapping_clientes_df.index.duplicated(keep = False)]
-    mapping_clientes_df = mapping_clientes_df[~mapping_clientes_df.index.duplicated(keep='last')]
+    mapping_clientes_duplicated_df = mapping_clients_df[mapping_clients_df.index.duplicated(keep = False)]
+    mapping_clients_df = mapping_clients_df[~mapping_clients_df.index.duplicated(keep='last')]
 
-    return [mapping_clientes_df, mapping_clientes_duplicated_df, missing_mapping_clientes_df]
+    return [mapping_clients_df, mapping_clientes_duplicated_df, missing_mapping_clients_df]
 
 def _agg_vendas_clientes(vendas_df):
     max_date = max(vendas_df['Data e hora'])
@@ -77,7 +77,7 @@ class StepTransformPandasDataAnalysisClients(Step):
         mapping_sales_df = kwargs["mapping_sales_df"]
         mapping_clients_df = kwargs["mapping_clients_df"]
 
-        mapping_clientes_df, *_  = _test_mapping_clientes(mapping_clients_df)
+        mapping_clients_df, *_  = _test_mapping_clients(mapping_clients_df)
 
         clients_df['Origem'] = clients_df['Origem'].str.lower()
 
