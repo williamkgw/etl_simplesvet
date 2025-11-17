@@ -2,7 +2,7 @@ import pandas as pd
 
 from etl_simplesvet.step import Step
 
-def _test_mapping_clients(mapping_clients_df):
+def _treat_mapping_clients(mapping_clients_df):
     # removing empty rows
     missing_mapping_clients_df = mapping_clients_df[mapping_clients_df.isna().all(axis=1)]
     mapping_clients_df = mapping_clients_df.dropna(how = 'all', axis = 0)
@@ -15,6 +15,12 @@ def _test_mapping_clients(mapping_clients_df):
     mapping_clients_df = mapping_clients_df[~mapping_clients_df.index.duplicated(keep='last')]
 
     return [mapping_clients_df, mapping_clientes_duplicated_df, missing_mapping_clients_df]
+
+def _enrich_clients_df(clients_df, mapping_clients_df):
+    enriched_clients_df = clients_df.copy()
+    enriched_clients_df['_grupo'] = enriched_clients_df['Origem'].map(mapping_clients_df['Grupo'])
+    enriched_clients_df['_grupo'] = enriched_clients_df['_grupo'].fillna('NULL')
+    return enriched_clients_df
 
 def _agg_vendas_clientes(vendas_df):
     max_date = max(vendas_df['Data e hora'])
@@ -60,13 +66,23 @@ def _agg_vendas_clientes(vendas_df):
 
     return agg_v_clientes
 
-def _agg_clientes_mapping(clientes_agrupado):
+def _agg_clientes_mapping(clients_df):
+    clientes_agrupado = clients_df.groupby([pd.Grouper(key = 'Inclusão', freq = '1ME'), '_grupo'], dropna = False)
     agg = pd.DataFrame()
     agg['Quantidade Totalizada Clientes'] = clientes_agrupado.agg({'Origem': 'count'})
 
     agg = agg.dropna(axis = 1, how='all')
     agg = agg.unstack(level = -1, fill_value = 0)
     return agg
+
+def _agg_clients_total(clients_df):
+    clients_agrupado_tempo = clients_df.groupby([pd.Grouper(key = 'Inclusão', freq = '1ME')])
+    agg_clients_total = pd.DataFrame()
+    agg_clients_total['Quantidade Totalizada Clientes'] = clients_agrupado_tempo \
+        .agg({ \
+            'Origem': 'count' \
+        })
+    return agg_clients_total
 
 
 class StepTransformPandasDataAnalysisClients(Step):
@@ -77,24 +93,16 @@ class StepTransformPandasDataAnalysisClients(Step):
         mapping_sales_df = kwargs["mapping_sales_df"]
         mapping_clients_df = kwargs["mapping_clients_df"]
 
-        mapping_clients_df, *_  = _test_mapping_clients(mapping_clients_df)
+        mapping_clients_df, *_  = _treat_mapping_clients(mapping_clients_df)
 
-        clients_df['Origem'] = clients_df['Origem'].str.lower()
+        clients_df = _enrich_clients_df(clients_df, mapping_clients_df)
 
-        clients_df['_grupo'] = clients_df['Origem'].map(mapping_clients_df['Grupo'])
-        clients_df['_grupo'] = clients_df['_grupo'].fillna('NULL')
-
-        clientes_agrupado = clients_df.groupby([pd.Grouper(key = 'Inclusão', freq = '1ME'), '_grupo'], dropna = False)
-        clientes_agrupado_tempo = clients_df.groupby([pd.Grouper(key = 'Inclusão', freq = '1ME')])
-
-        agg_clientes = _agg_clientes_mapping(clientes_agrupado)
+        agg_clientes = _agg_clientes_mapping(clients_df)
         agg_clientes = agg_clientes.loc[agg_clientes.index[-6:]]
-        agg_clientes_total = pd.DataFrame()
-        agg_clientes_total['Quantidade Totalizada Clientes'] = clientes_agrupado_tempo \
-            .agg({ \
-                'Origem': 'count' \
-            })
+
+        agg_clientes_total = _agg_clients_total(clients_df)
         agg_clientes_total = agg_clientes_total.loc[agg_clientes_total.index[-6:]]
+
         agg_v_clientes = _agg_vendas_clientes(sales_df)
         agg_v_clientes = agg_v_clientes.loc[agg_v_clientes.index[-6:]]
 

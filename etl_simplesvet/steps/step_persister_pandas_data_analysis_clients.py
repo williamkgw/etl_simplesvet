@@ -13,7 +13,7 @@ class StepPersisterPandasDataAnalysisClients(Step):
         agg_v_clientes = kwargs["agg_v_clientes"]
 
         agg_f = "datasets/output/test_agg_clientes_1.xlsx"
-        clients_f = "datasets/output/clientes_csv.xlsx"
+        clients_f = "datasets/output/clientes_csv_1.xlsx"
 
         persister = PersisterPandasXLSX(clients_f)
         persister.persist(clients_df)
