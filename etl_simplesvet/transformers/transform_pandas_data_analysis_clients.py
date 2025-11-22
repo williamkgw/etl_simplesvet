@@ -7,46 +7,16 @@ def enrich_clients_df(clients_df, mapping_clients_df):
     return enriched_clients_df
 
 def agg_vendas_clientes(vendas_df):
-    max_date = max(vendas_df['Data e hora'])
-    end_date = pd.Period.to_timestamp(max_date.to_period(freq = '1M'))
-    min_date = min(vendas_df['Data e hora'])
-    start_date = pd.Period.to_timestamp(min_date.to_period(freq = '1M'))
-
-    agg_v_clientes = pd.DataFrame()
-    if start_date == end_date:
-        n_clientes_6_meses = 0
-        agg_new = pd.DataFrame(index = [end_date])
-        agg_new['Quantidade Totalizada Clientes Ativos'] = n_clientes_6_meses
-        return agg_new
-
-    endDate = end_date
-    while True:
-        startDate = endDate - pd.DateOffset(months = 6)
-
-        if startDate <= start_date:
-            while True:
-                startDate = start_date
-                if endDate <= startDate:
-                    break
-                mask = (vendas_df['Data e hora'] >= startDate) & (vendas_df['Data e hora'] <= endDate)
-                df = vendas_df[mask]
-                n_clientes_6_meses = df['Cliente'].nunique()
-                agg_new = pd.DataFrame(index = [endDate])
-                agg_new['Quantidade Totalizada Clientes Ativos'] = n_clientes_6_meses
-                agg_v_clientes = pd.concat([agg_new, agg_v_clientes])
-
-                endDate -= pd.DateOffset(months = 1)
-            break
-
-        mask = (vendas_df['Data e hora'] >= startDate) & (vendas_df['Data e hora'] <= endDate)
-        df = vendas_df[mask]
-        n_clientes_6_meses = df['Cliente'].nunique()
-
-        agg_new = pd.DataFrame(index = [endDate])
-        agg_new['Quantidade Totalizada Clientes Ativos'] = n_clientes_6_meses
-        agg_v_clientes = pd.concat([agg_new, agg_v_clientes])
-
-        endDate -= pd.DateOffset(months = 1)
+    agg_v_clientes = vendas_df \
+                        .groupby([pd.Grouper(key = "Data e hora", freq = "1ME")])["Cliente"] \
+                        .agg(list) \
+                        .pipe( \
+                            lambda s: pd.Series( \
+                                [len(set().union(*s.iloc[max(0, i-6): i])) for i in range(len(s))], \
+                                index = s.index, \
+                                name='Quantidade Totalizada Clientes Ativos' \
+                            ) \
+                        )
 
     return agg_v_clientes
 
