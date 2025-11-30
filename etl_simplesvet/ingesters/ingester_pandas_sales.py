@@ -16,6 +16,10 @@ class IngesterPandasSales(IngesterPandasCSV):
         df['Código'] = df['Código'].fillna(0)
         return df
 
+    def _treat_product_service(self, df):
+        df['Produto/serviço'] = df['Produto/serviço'].str.lower()
+        return df
+
     def _get_sales_last_36_months(self, df, end_date):
         max_datetime = pd.to_datetime(end_date) + pd.tseries.offsets.DateOffset(days=1)
         min_datetime = max_datetime - pd.tseries.offsets.DateOffset(years=3)
@@ -40,6 +44,7 @@ class IngesterPandasSales(IngesterPandasCSV):
                 .pipe(self._correct_datetime_column) \
                 .pipe(self._fill_missing_code) \
                 .pipe(self._get_sales_last_36_months, end_date=self._end_date) \
+                .pipe(self._treat_product_service) \
                 .astype({
                     'Produto/serviço': str,
                     'Quantidade': float,

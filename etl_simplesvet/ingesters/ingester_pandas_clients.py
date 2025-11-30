@@ -14,8 +14,7 @@ class IngesterPandasClients(IngesterPandasCSV):
 
     def _treat_frame(self, df, end_date):
         df = df.copy()
-
-        df['Origem'] = df['Origem'].fillna('_outros')
+        df['Origem'] = df['Origem'].fillna('_outros').str.lower()
         df['Inclusão'] = pd.to_datetime(df['Inclusão'], dayfirst = True, errors = 'coerce')
         df['Inclusão'] = df['Inclusão'].fillna('01/01/1900')
         mask = df['Inclusão'] <= pd.to_datetime(end_date)
