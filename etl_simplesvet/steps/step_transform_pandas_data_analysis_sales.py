@@ -1,23 +1,16 @@
+import pandas as pd
+
 from etl_simplesvet.step import Step
 
 from etl_simplesvet.transformers.transform_pandas_data_analysis_sales import (
-    test_vendas,
-    test_inadimplente
+    enrich_sales_df,
+    get_agg_grupo_df,
+    get_agg_pilar_df,
+    get_agg_categoria_df,
+    get_agg_tempo_df,
+    get_exception_df,
+    get_inadimplencia_df
 )
-
-def test_mapping_vendas(mapping_vendas_df):
-    # removing empty rows
-    missing_mapping_vendas_df = mapping_vendas_df[mapping_vendas_df.isna().all(axis=1)]
-    mapping_vendas_df = mapping_vendas_df.dropna(how = 'all', axis = 0)
-
-    # configuring the dataframes to catch case sensitive
-    mapping_vendas_df.index = mapping_vendas_df.index.str.lower()
-
-    # removing duplicated index
-    mapping_vendas_duplicated_df = mapping_vendas_df[mapping_vendas_df.index.duplicated(keep = False)]
-    mapping_vendas_df = mapping_vendas_df[~mapping_vendas_df.index.duplicated(keep='last')]
-
-    return [mapping_vendas_df, mapping_vendas_duplicated_df, missing_mapping_vendas_df]
 
 
 class  StepTransformPandasDataAnalysisSales(Step):
@@ -28,17 +21,36 @@ class  StepTransformPandasDataAnalysisSales(Step):
         mapping_sales_df = kwargs["mapping_sales_df"]
         mapping_clients_df = kwargs["mapping_clients_df"]
 
-        mapping_sales_df, *_ = test_mapping_vendas(mapping_sales_df)
+        # enrich sales
+        sales_df = enrich_sales_df(sales_df, mapping_sales_df)
 
-        result_vendas = test_vendas(sales_df, mapping_sales_df)
-        inadimplencia = test_inadimplente(sales_df, end_date)
+        # sales output diagnosis
+        sales_missing_df = sales_df[sales_df[['__pilar', '__grupo']].isna().any(axis = 1)]
 
+        # grouped sales
+        sales_groupedby_grupo = sales_df.groupby([pd.Grouper(key = 'Data e hora', freq = '1ME'), '__pilar' ,'__grupo'], dropna = False)
+        sales_groupedby_pilar = sales_df.groupby([pd.Grouper(key = 'Data e hora', freq = '1ME'), '__categoria' ,'__pilar'], dropna = False)
+        sales_groupedby_categoria = sales_df.groupby([pd.Grouper(key = 'Data e hora', freq = '1ME'), '__categoria'], dropna = False)
+        sales_groupedby_tempo = sales_df \
+                                .dropna(subset = ['__categoria', '__pilar'], how = "all") \
+                                .groupby([pd.Grouper(key = 'Data e hora', freq = '1ME')])
+
+        agg_grupo_df = get_agg_grupo_df(sales_groupedby_grupo)
+        agg_pilar_df = get_agg_pilar_df(sales_groupedby_pilar)
+        agg_categoria_df = get_agg_categoria_df(sales_groupedby_categoria)
+        agg_tempo_df = get_agg_tempo_df(sales_groupedby_tempo)
+        exception_df = get_exception_df(sales_groupedby_grupo)
+        unique_mapping_df = mapping_sales_df.groupby(['Categoria', 'Pilar', 'Grupo']).size()
+        inadimplencia_df = get_inadimplencia_df(sales_df, end_date)
         return {
-            **result_vendas,
-            "mapping_sales_df": mapping_sales_df,
-            "inadimplencia": inadimplencia,
-            "clients_df": clients_df,
-            "mapping_clients_df": mapping_clients_df,
-            "end_date": end_date,
-            **kwargs
+            **kwargs,
+            "agg_grupo_df": agg_grupo_df.loc[agg_grupo_df.index[-6:]],
+            "agg_pilar_df": agg_pilar_df.loc[agg_pilar_df.index[-6:]],
+            "agg_categoria_df": agg_categoria_df.loc[agg_categoria_df.index[-6:]],
+            "agg_tempo_df": agg_tempo_df.loc[agg_tempo_df.index[-6:]],
+            "agg_exception_df": exception_df.loc[exception_df.index[-6:]],
+            "unique_mapping_df": unique_mapping_df,
+            "vendas_missing_df": sales_missing_df,
+            "sales_df": sales_df,
+            "inadimplencia": inadimplencia_df
         }

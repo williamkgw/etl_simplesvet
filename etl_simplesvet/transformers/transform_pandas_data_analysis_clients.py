@@ -2,8 +2,11 @@ import pandas as pd
 
 def enrich_clients_df(clients_df, mapping_clients_df):
     enriched_clients_df = clients_df.copy()
-    enriched_clients_df['_grupo'] = enriched_clients_df['Origem'].map(mapping_clients_df['Grupo'])
+
+    mapping_clients_df = mapping_clients_df.rename(columns={"Grupo": "_grupo"})
+    enriched_clients_df = enriched_clients_df.join(mapping_clients_df, on = "Origem", how = "left")
     enriched_clients_df['_grupo'] = enriched_clients_df['_grupo'].fillna('NULL')
+
     return enriched_clients_df
 
 def agg_vendas_clientes(vendas_df):

@@ -9,7 +9,6 @@ class StepPersisterPandasDataAnalysisSales(Step):
         agg_f = "datasets/output/test_agg_1.xlsx"
         vendas_missing_f = "datasets/output/missing_vendas_csv_1.xlsx"
         vendas_csv_f = "datasets/output/vendas_csv_1.xlsx"
-
         vendas_missing_df = kwargs["vendas_missing_df"]
         sales_df = kwargs["sales_df"]
         agg_grupo_df = kwargs["agg_grupo_df"]

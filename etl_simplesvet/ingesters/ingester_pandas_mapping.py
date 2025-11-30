@@ -21,9 +21,24 @@ class IngesterPandasMapping(IngesterPandasXLSX):
             "dtype": MAPPING_COLUMNS
         }
 
+    def _treat_mapping_sales(self, mapping_sales_df):
+        # removing empty rows
+        missing_mapping_sales_df = mapping_sales_df[mapping_sales_df.isna().all(axis=1)]
+        mapping_sales_df = mapping_sales_df.dropna(how = 'all', axis = 0)
+
+        # configuring the dataframes to catch case sensitive
+        mapping_sales_df.index = mapping_sales_df.index.str.lower()
+
+        # removing duplicated index
+        mapping_sales_duplicated_df = mapping_sales_df[mapping_sales_df.index.duplicated(keep = False)]
+        mapping_sales_df = mapping_sales_df[~mapping_sales_df.index.duplicated(keep='last')]
+
+        return mapping_sales_df
+
     def ingest(self):
         df = super() \
             .pass_options(**self._options) \
-            ._read()
+            ._read() \
+            .pipe(self._treat_mapping_sales)
 
         return df

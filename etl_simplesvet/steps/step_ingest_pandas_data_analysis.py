@@ -17,6 +17,7 @@ class StepIngestPandasDataAnalysis(Step):
         mapping_clients_df = IngesterPandasMappingClients("datasets/new_mapping_cliente.xlsx").ingest()
 
         return {
+            **kwargs,
             "end_date": end_date,
             "sales_df": sales_df,
             "clients_df": clients_df,
