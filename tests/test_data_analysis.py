@@ -1,5 +1,6 @@
 import unittest
 
+from io import StringIO
 from pathlib import Path
 import pandas as pd
 import numpy as np
@@ -39,64 +40,40 @@ class TestDataAnalysisSales(unittest.TestCase):
         _test_output_xlsx_files(file_stems)
 
     def test_inadimplencia(self):
-        mock_data = {
-                'Data e hora': {
-                    0: pd.Timestamp('2024-05-12 10:27:00'),
-                    1: pd.Timestamp('2024-05-12 10:27:00'),
-                    2: pd.Timestamp('2024-05-12 10:27:00'),
-                    3: pd.Timestamp('2024-01-04 18:21:00'),
-                    4: pd.Timestamp('2024-01-04 18:21:00'),
-                    5: pd.Timestamp('2024-09-17 11:33:00'),
-                    6: pd.Timestamp('2024-10-24 13:50:00'),
-                    7: pd.Timestamp('2024-11-13 17:44:00'),
-                    8: pd.Timestamp('2024-12-21 15:04:00'),
-                    9: pd.Timestamp('2025-01-14 08:35:00')
-                },
-                'Status da venda': {
-                    0: 'Baixado',
-                    1: 'Baixado',
-                    2: 'Baixado',
-                    3: 'Baixado',
-                    4: 'Baixa parcial',
-                    5: 'Baixa parcial',
-                    6: 'Aberto',
-                    7: 'Baixa parcial',
-                    8: 'Aberto',
-                    9: 'Em atendimento'
-                },
-                'Bruto': {
-                    0: 400.0,
-                    1: 400.0,
-                    2: 600.0,
-                    3: 312.0,
-                    4: 276.0,
-                    5: 36.0,
-                    6: 63.0,
-                    7: 8.0,
-                    8: 36.0,
-                    9: 220.0
-                  }
-                }
-        df_sales_mock = pd.DataFrame(mock_data)
+        sales_mock_csv = """Data e hora,Status da venda,Bruto
+        2024-05-12 10:27:00,Baixado,400.0
+        2024-05-12 10:27:00,Baixado,400.0
+        2024-05-12 10:27:00,Baixado,600.0
+        2024-01-04 18:21:00,Baixado,312.0
+        2024-01-04 18:21:00,Baixa parcial,276.0
+        2024-09-17 11:33:00,Baixa parcial,36.0
+        2024-10-24 13:50:00,Aberto,63.0
+        2024-11-13 17:44:00,Baixa parcial,8.0
+        2024-12-21 15:04:00,Aberto,36.0
+        2025-01-14 08:35:00,Em atendimento,220.0
+        """
+        df_sales_mock = pd.read_csv(StringIO(sales_mock_csv))
+        df_sales_mock["Data e hora"] = pd.to_datetime(df_sales_mock["Data e hora"])
         end_date = datetime(2025, 2, 1, 0, 0)
         s_inadimpl = get_inadimplencia_df(df_sales_mock, end_date)
 
-        s_inadimpl_expected = pd.Series({
-                pd.Timestamp('2024-01-31 00:00:00'): np.nan,
-                pd.Timestamp('2024-02-29 00:00:00'): np.nan,
-                pd.Timestamp('2024-03-31 00:00:00'): np.nan,
-                pd.Timestamp('2024-04-30 00:00:00'): np.nan,
-                pd.Timestamp('2024-05-31 00:00:00'): np.nan,
-                pd.Timestamp('2024-06-30 00:00:00'): np.nan,
-                pd.Timestamp('2024-07-31 00:00:00'): np.nan,
-                pd.Timestamp('2024-08-31 00:00:00'): np.nan,
-                pd.Timestamp('2024-09-30 00:00:00'): np.nan,
-                pd.Timestamp('2024-10-31 00:00:00'): np.nan,
-                pd.Timestamp('2024-11-30 00:00:00'): np.nan,
-                pd.Timestamp('2024-12-31 00:00:00'): 419.0
-            },
-            name = 'Inadimplencia do Faturamento Bruto')
-        s_inadimpl_expected.index.name = 'Data e hora'
+        inadimpl_expected_csv ="""Data e hora,Inadimplencia do Faturamento Bruto
+        2024-01-31 00:00:00,
+        2024-02-29 00:00:00,
+        2024-03-31 00:00:00,
+        2024-04-30 00:00:00,
+        2024-05-31 00:00:00,
+        2024-06-30 00:00:00,
+        2024-07-31 00:00:00,
+        2024-08-31 00:00:00,
+        2024-09-30 00:00:00,
+        2024-10-31 00:00:00,
+        2024-11-30 00:00:00,
+        2024-12-31 00:00:00,419.0
+        """
+        s_inadimpl_expected = pd.read_csv(StringIO(inadimpl_expected_csv))
+        s_inadimpl_expected["Data e hora"] = pd.to_datetime(s_inadimpl_expected["Data e hora"])
+        s_inadimpl_expected = s_inadimpl_expected.set_index("Data e hora")["Inadimplencia do Faturamento Bruto"]
         s_inadimpl_expected.index = s_inadimpl_expected.index.to_period("M").to_timestamp("M")
 
         pd.testing.assert_series_equal(s_inadimpl, s_inadimpl_expected)
