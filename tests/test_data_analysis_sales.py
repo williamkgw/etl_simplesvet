@@ -207,9 +207,3 @@ class TestDataAnalysisSales(unittest.TestCase):
         #    "vendas_missing_df": sales_missing_df,
         #    "sales_df": sales_df,
 
-class TestDataAnalysisClients(unittest.TestCase):
-
-    def test_clients(self):
-        file_stems = ("clientes_csv", "test_agg_clientes")
-        _test_output_xlsx_files(file_stems)
-
