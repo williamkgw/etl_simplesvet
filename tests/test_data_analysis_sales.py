@@ -8,7 +8,8 @@ from datetime import datetime
 
 from etl_simplesvet.transformers.transform_pandas_data_analysis_sales import (
     get_inadimplencia_df,
-    get_agg_grupo_df
+    get_agg_grupo_df,
+    get_agg_pilar_df
 )
 
 def _test_output_xlsx_files(file_stems):
@@ -158,6 +159,149 @@ class TestDataAnalysisSales(unittest.TestCase):
         agg_grupo_flattened_expected_df["Data e hora"] = pd.to_datetime(agg_grupo_flattened_expected_df["Data e hora"])
         pd.testing.assert_frame_equal(agg_grupo_flattened_df, agg_grupo_flattened_expected_df)
 
+    def test_agg_pilar(self):
+        sales_mock_csv = """Data e hora,Bruto,Quantidade,__categoria,__pilar,__ticket_por_pilar,__clientes_ativo_por_pilar
+            2023-01-26 12:26:00,55.0,1.0,B&T+P&S,Banho e Tosa,0.5,0.25
+            2023-01-11 13:57:00,5.0,1.0,B&T+P&S,PetShop,0.5,0.5
+            2023-01-27 14:03:00,400.0,1.0,Clí+,Cirurgia,0.5,0.5
+            2023-01-16 16:19:00,70.01,1.0,Clí+,Clínica,1.0,1.0
+            2023-01-04 15:55:00,100.0,1.0,Clí+,Exames,0.5,0.5
+            2023-01-03 11:37:00,200.0,1.0,Clí+,Internação,1.0,1.0
+            2023-01-27 10:23:00,305.0,1.0,NULL,NULL,1.0,1.0
+            2023-02-09 08:18:00,78.0,1.0,B&T+P&S,Banho e Tosa,0.5,0.5
+            2023-02-14 12:24:00,33.9,1.0,B&T+P&S,PetShop,1.0,0.5
+            2023-02-14 19:48:00,300.0,1.0,Clí+,Cirurgia,0.5,0.5
+            2023-02-15 10:12:00,110.0,1.0,Clí+,Clínica,0.5,0.5
+            2023-02-27 15:38:00,28.0,1.0,Clí+,Exames,0.125,0.125
+            2023-02-03 11:30:00,80.0,1.0,Clí+,Internação,1.0,1.0
+            2023-02-01 10:53:00,305.0,1.0,NULL,NULL,1.0,1.0
+            2023-03-16 09:31:00,55.0,1.0,B&T+P&S,Banho e Tosa,0.5,0.06666666666666667
+            2023-03-30 08:11:00,149.9,1.0,B&T+P&S,PetShop,1.0,1.0
+            2023-03-04 09:17:00,380.0,1.0,Clí+,Cirurgia,0.5,0.5
+            2023-03-08 09:08:00,130.0,1.0,Clí+,Clínica,1.0,1.0
+            2023-03-04 08:26:00,140.0,1.0,Clí+,Exames,0.16666666666666666,0.09090909090909091
+        """
+        df_sales_mock = pd.read_csv(StringIO(sales_mock_csv))
+        df_sales_mock["Data e hora"] = pd.to_datetime(df_sales_mock["Data e hora"])
+        sales_mock_groupedby_pilar = df_sales_mock.groupby([pd.Grouper(key = 'Data e hora', freq = '1ME'), '__categoria' ,'__pilar'], dropna = False)
+
+        agg_mock_pilar = get_agg_pilar_df(sales_mock_groupedby_pilar)
+        agg_mock_pilar_flattened = agg_mock_pilar.unstack(level = -1).reset_index()
+
+        agg_pilar_flattened_expected_csv = """level_0,__categoria,__pilar,Data e hora,0
+            Faturamento Bruto,B&T+P&S,Banho e Tosa,2023-01-31,55.0
+            Faturamento Bruto,B&T+P&S,Banho e Tosa,2023-02-28,78.0
+            Faturamento Bruto,B&T+P&S,Banho e Tosa,2023-03-31,55.0
+            Faturamento Bruto,B&T+P&S,PetShop,2023-01-31,5.0
+            Faturamento Bruto,B&T+P&S,PetShop,2023-02-28,33.9
+            Faturamento Bruto,B&T+P&S,PetShop,2023-03-31,149.9
+            Faturamento Bruto,Clí+,Cirurgia,2023-01-31,400.0
+            Faturamento Bruto,Clí+,Cirurgia,2023-02-28,300.0
+            Faturamento Bruto,Clí+,Cirurgia,2023-03-31,380.0
+            Faturamento Bruto,Clí+,Clínica,2023-01-31,70.01
+            Faturamento Bruto,Clí+,Clínica,2023-02-28,110.0
+            Faturamento Bruto,Clí+,Clínica,2023-03-31,130.0
+            Faturamento Bruto,Clí+,Exames,2023-01-31,100.0
+            Faturamento Bruto,Clí+,Exames,2023-02-28,28.0
+            Faturamento Bruto,Clí+,Exames,2023-03-31,140.0
+            Faturamento Bruto,Clí+,Internação,2023-01-31,200.0
+            Faturamento Bruto,Clí+,Internação,2023-02-28,80.0
+            Faturamento Bruto,Clí+,Internação,2023-03-31,0.0
+            Faturamento Bruto,,,2023-01-31,305.0
+            Faturamento Bruto,,,2023-02-28,305.0
+            Faturamento Bruto,,,2023-03-31,0.0
+            Quantidade Totalizada,B&T+P&S,Banho e Tosa,2023-01-31,1.0
+            Quantidade Totalizada,B&T+P&S,Banho e Tosa,2023-02-28,1.0
+            Quantidade Totalizada,B&T+P&S,Banho e Tosa,2023-03-31,1.0
+            Quantidade Totalizada,B&T+P&S,PetShop,2023-01-31,1.0
+            Quantidade Totalizada,B&T+P&S,PetShop,2023-02-28,1.0
+            Quantidade Totalizada,B&T+P&S,PetShop,2023-03-31,1.0
+            Quantidade Totalizada,Clí+,Cirurgia,2023-01-31,1.0
+            Quantidade Totalizada,Clí+,Cirurgia,2023-02-28,1.0
+            Quantidade Totalizada,Clí+,Cirurgia,2023-03-31,1.0
+            Quantidade Totalizada,Clí+,Clínica,2023-01-31,1.0
+            Quantidade Totalizada,Clí+,Clínica,2023-02-28,1.0
+            Quantidade Totalizada,Clí+,Clínica,2023-03-31,1.0
+            Quantidade Totalizada,Clí+,Exames,2023-01-31,1.0
+            Quantidade Totalizada,Clí+,Exames,2023-02-28,1.0
+            Quantidade Totalizada,Clí+,Exames,2023-03-31,1.0
+            Quantidade Totalizada,Clí+,Internação,2023-01-31,1.0
+            Quantidade Totalizada,Clí+,Internação,2023-02-28,1.0
+            Quantidade Totalizada,Clí+,Internação,2023-03-31,0.0
+            Quantidade Totalizada,,,2023-01-31,1.0
+            Quantidade Totalizada,,,2023-02-28,1.0
+            Quantidade Totalizada,,,2023-03-31,0.0
+            Preço Médio,B&T+P&S,Banho e Tosa,2023-01-31,55.0
+            Preço Médio,B&T+P&S,Banho e Tosa,2023-02-28,78.0
+            Preço Médio,B&T+P&S,Banho e Tosa,2023-03-31,55.0
+            Preço Médio,B&T+P&S,PetShop,2023-01-31,5.0
+            Preço Médio,B&T+P&S,PetShop,2023-02-28,33.9
+            Preço Médio,B&T+P&S,PetShop,2023-03-31,149.9
+            Preço Médio,Clí+,Cirurgia,2023-01-31,400.0
+            Preço Médio,Clí+,Cirurgia,2023-02-28,300.0
+            Preço Médio,Clí+,Cirurgia,2023-03-31,380.0
+            Preço Médio,Clí+,Clínica,2023-01-31,70.01
+            Preço Médio,Clí+,Clínica,2023-02-28,110.0
+            Preço Médio,Clí+,Clínica,2023-03-31,130.0
+            Preço Médio,Clí+,Exames,2023-01-31,100.0
+            Preço Médio,Clí+,Exames,2023-02-28,28.0
+            Preço Médio,Clí+,Exames,2023-03-31,140.0
+            Preço Médio,Clí+,Internação,2023-01-31,200.0
+            Preço Médio,Clí+,Internação,2023-02-28,80.0
+            Preço Médio,Clí+,Internação,2023-03-31,0.0
+            Preço Médio,,,2023-01-31,305.0
+            Preço Médio,,,2023-02-28,305.0
+            Preço Médio,,,2023-03-31,0.0
+            Tickets Médio,B&T+P&S,Banho e Tosa,2023-01-31,110.0
+            Tickets Médio,B&T+P&S,Banho e Tosa,2023-02-28,156.0
+            Tickets Médio,B&T+P&S,Banho e Tosa,2023-03-31,110.0
+            Tickets Médio,B&T+P&S,PetShop,2023-01-31,10.0
+            Tickets Médio,B&T+P&S,PetShop,2023-02-28,33.9
+            Tickets Médio,B&T+P&S,PetShop,2023-03-31,149.9
+            Tickets Médio,Clí+,Cirurgia,2023-01-31,800.0
+            Tickets Médio,Clí+,Cirurgia,2023-02-28,600.0
+            Tickets Médio,Clí+,Cirurgia,2023-03-31,760.0
+            Tickets Médio,Clí+,Clínica,2023-01-31,70.01
+            Tickets Médio,Clí+,Clínica,2023-02-28,220.0
+            Tickets Médio,Clí+,Clínica,2023-03-31,130.0
+            Tickets Médio,Clí+,Exames,2023-01-31,200.0
+            Tickets Médio,Clí+,Exames,2023-02-28,224.0
+            Tickets Médio,Clí+,Exames,2023-03-31,840.0000000000003
+            Tickets Médio,Clí+,Internação,2023-01-31,200.0
+            Tickets Médio,Clí+,Internação,2023-02-28,80.0
+            Tickets Médio,Clí+,Internação,2023-03-31,0.0
+            Tickets Médio,,,2023-01-31,305.0
+            Tickets Médio,,,2023-02-28,305.0
+            Tickets Médio,,,2023-03-31,0.0
+            Faturamento Médio por Clientes,B&T+P&S,Banho e Tosa,2023-01-31,220.0
+            Faturamento Médio por Clientes,B&T+P&S,Banho e Tosa,2023-02-28,156.0
+            Faturamento Médio por Clientes,B&T+P&S,Banho e Tosa,2023-03-31,825.0000000000009
+            Faturamento Médio por Clientes,B&T+P&S,PetShop,2023-01-31,10.0
+            Faturamento Médio por Clientes,B&T+P&S,PetShop,2023-02-28,67.8
+            Faturamento Médio por Clientes,B&T+P&S,PetShop,2023-03-31,149.9
+            Faturamento Médio por Clientes,Clí+,Cirurgia,2023-01-31,800.0
+            Faturamento Médio por Clientes,Clí+,Cirurgia,2023-02-28,600.0
+            Faturamento Médio por Clientes,Clí+,Cirurgia,2023-03-31,760.0
+            Faturamento Médio por Clientes,Clí+,Clínica,2023-01-31,70.01
+            Faturamento Médio por Clientes,Clí+,Clínica,2023-02-28,220.0
+            Faturamento Médio por Clientes,Clí+,Clínica,2023-03-31,130.0
+            Faturamento Médio por Clientes,Clí+,Exames,2023-01-31,200.0
+            Faturamento Médio por Clientes,Clí+,Exames,2023-02-28,224.0
+            Faturamento Médio por Clientes,Clí+,Exames,2023-03-31,1540.0000000000002
+            Faturamento Médio por Clientes,Clí+,Internação,2023-01-31,200.0
+            Faturamento Médio por Clientes,Clí+,Internação,2023-02-28,80.0
+            Faturamento Médio por Clientes,Clí+,Internação,2023-03-31,0.0
+            Faturamento Médio por Clientes,,,2023-01-31,305.0
+            Faturamento Médio por Clientes,,,2023-02-28,305.0
+            Faturamento Médio por Clientes,,,2023-03-31,0.0
+        """
+        agg_pilar_flattened_expected = pd.read_csv(StringIO(agg_pilar_flattened_expected_csv))
+        agg_pilar_flattened_expected = agg_pilar_flattened_expected.rename(columns={'0': 0})
+        agg_pilar_flattened_expected["level_0"] = agg_pilar_flattened_expected["level_0"].str.strip()
+        agg_pilar_flattened_expected["Data e hora"] = pd.to_datetime(agg_pilar_flattened_expected["Data e hora"])
+
+        pd.testing.assert_frame_equal(agg_mock_pilar_flattened ,agg_pilar_flattened_expected)
+
     def test_inadimplencia(self):
         sales_mock_csv = """Data e hora,Status da venda,Bruto
             2024-05-12 10:27:00,Baixado,400.0
@@ -199,7 +343,6 @@ class TestDataAnalysisSales(unittest.TestCase):
 
         #    STILL NEED TO DO THAT
         #
-        #    "agg_pilar_df": agg_pilar_df.loc[agg_pilar_df.index[-6:]],
         #    "agg_categoria_df": agg_categoria_df.loc[agg_categoria_df.index[-6:]],
         #    "agg_tempo_df": agg_tempo_df.loc[agg_tempo_df.index[-6:]],
         #    "agg_exception_df": exception_df.loc[exception_df.index[-6:]],
