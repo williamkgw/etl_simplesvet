@@ -10,6 +10,7 @@ from etl_simplesvet.transformers.transform_pandas_data_analysis_sales import (
     get_inadimplencia_df,
     get_agg_grupo_df,
     get_agg_pilar_df,
+    get_agg_categoria_df,
     get_agg_tempo_df
 )
 
@@ -303,6 +304,112 @@ class TestDataAnalysisSales(unittest.TestCase):
 
         pd.testing.assert_frame_equal(agg_mock_pilar_flattened ,agg_pilar_flattened_expected)
 
+    def test_agg_categoria(self):
+        #sales_groupedby_categoria = sales_df.groupby([pd.Grouper(key = 'Data e hora', freq = '1ME'), '__categoria'], dropna = False)
+
+        #sales_mock_csv = """Data e hora,Bruto,Quantidade,__categoria
+        # ["Data e hora","Bruto","Quantidade",__categoria"]
+
+        sales_mock_csv = """Data e hora,Bruto,Quantidade,__categoria
+            2023-01-18 08:16:00,68.9,1.0,B&T+P&S
+            2023-01-27 10:23:00,130.0,1.0,Clí+
+            2023-01-04 18:21:00,276.0,1.0,NULL
+            2023-02-10 11:00:00,15.0,1.0,B&T+P&S
+            2023-02-15 13:15:00,320.0,1.0,Clí+
+            2023-02-01 10:53:00,305.0,1.0,NULL
+            2023-03-18 10:59:00,55.0,1.0,B&T+P&S
+            2023-03-10 10:04:00,200.0,1.0,Clí+
+            2023-03-04 09:09:00,30.0,1.0,NULL
+            2023-04-04 11:40:00,57.9,1.0,B&T+P&S
+            2023-04-11 16:00:00,60.0,1.0,Clí+
+            2023-04-11 13:32:00,305.0,1.0,NULL
+            2023-05-31 10:12:00,10.0,1.0,B&T+P&S
+            2023-05-16 14:25:00,80.0,1.0,Clí+
+            2023-05-23 13:53:00,260.0,1.0,NULL
+            2023-06-12 13:54:00,8.0,1.0,B&T+P&S
+            2023-06-01 08:49:00,38.0,1.0,Clí+
+            2023-06-02 18:02:00,350.0,7.0,NULL
+            2023-07-01 14:39:00,25.0,1.0,B&T+P&S
+            2023-07-17 18:09:00,70.01,1.0,Clí+
+        """
+        df_sales_mock = pd.read_csv(StringIO(sales_mock_csv))
+        df_sales_mock["Data e hora"] = pd.to_datetime(df_sales_mock["Data e hora"])
+        sales_mock_groupedby_categoria = df_sales_mock.groupby([pd.Grouper(key = 'Data e hora', freq = '1ME'), '__categoria'], dropna = False)
+        agg_categoria_mock = get_agg_categoria_df(sales_mock_groupedby_categoria)
+        agg_categoria_mock_flattened = agg_categoria_mock.unstack(level = -1).reset_index()
+
+        agg_categoria_mock_flattened_expected_csv = """level_0,__categoria,Data e hora,0
+            Faturamento Bruto,B&T+P&S,2023-01-31,68.9
+            Faturamento Bruto,B&T+P&S,2023-02-28,15.0
+            Faturamento Bruto,B&T+P&S,2023-03-31,55.0
+            Faturamento Bruto,B&T+P&S,2023-04-30,57.9
+            Faturamento Bruto,B&T+P&S,2023-05-31,10.0
+            Faturamento Bruto,B&T+P&S,2023-06-30,8.0
+            Faturamento Bruto,B&T+P&S,2023-07-31,25.0
+            Faturamento Bruto,Clí+,2023-01-31,130.0
+            Faturamento Bruto,Clí+,2023-02-28,320.0
+            Faturamento Bruto,Clí+,2023-03-31,200.0
+            Faturamento Bruto,Clí+,2023-04-30,60.0
+            Faturamento Bruto,Clí+,2023-05-31,80.0
+            Faturamento Bruto,Clí+,2023-06-30,38.0
+            Faturamento Bruto,Clí+,2023-07-31,70.01
+            Faturamento Bruto,,2023-01-31,276.0
+            Faturamento Bruto,,2023-02-28,305.0
+            Faturamento Bruto,,2023-03-31,30.0
+            Faturamento Bruto,,2023-04-30,305.0
+            Faturamento Bruto,,2023-05-31,260.0
+            Faturamento Bruto,,2023-06-30,350.0
+            Faturamento Bruto,,2023-07-31,0.0
+            Quantidade Totalizada,B&T+P&S,2023-01-31,1.0
+            Quantidade Totalizada,B&T+P&S,2023-02-28,1.0
+            Quantidade Totalizada,B&T+P&S,2023-03-31,1.0
+            Quantidade Totalizada,B&T+P&S,2023-04-30,1.0
+            Quantidade Totalizada,B&T+P&S,2023-05-31,1.0
+            Quantidade Totalizada,B&T+P&S,2023-06-30,1.0
+            Quantidade Totalizada,B&T+P&S,2023-07-31,1.0
+            Quantidade Totalizada,Clí+,2023-01-31,1.0
+            Quantidade Totalizada,Clí+,2023-02-28,1.0
+            Quantidade Totalizada,Clí+,2023-03-31,1.0
+            Quantidade Totalizada,Clí+,2023-04-30,1.0
+            Quantidade Totalizada,Clí+,2023-05-31,1.0
+            Quantidade Totalizada,Clí+,2023-06-30,1.0
+            Quantidade Totalizada,Clí+,2023-07-31,1.0
+            Quantidade Totalizada,,2023-01-31,1.0
+            Quantidade Totalizada,,2023-02-28,1.0
+            Quantidade Totalizada,,2023-03-31,1.0
+            Quantidade Totalizada,,2023-04-30,1.0
+            Quantidade Totalizada,,2023-05-31,1.0
+            Quantidade Totalizada,,2023-06-30,7.0
+            Quantidade Totalizada,,2023-07-31,0.0
+            Preço Médio,B&T+P&S,2023-01-31,68.9
+            Preço Médio,B&T+P&S,2023-02-28,15.0
+            Preço Médio,B&T+P&S,2023-03-31,55.0
+            Preço Médio,B&T+P&S,2023-04-30,57.9
+            Preço Médio,B&T+P&S,2023-05-31,10.0
+            Preço Médio,B&T+P&S,2023-06-30,8.0
+            Preço Médio,B&T+P&S,2023-07-31,25.0
+            Preço Médio,Clí+,2023-01-31,130.0
+            Preço Médio,Clí+,2023-02-28,320.0
+            Preço Médio,Clí+,2023-03-31,200.0
+            Preço Médio,Clí+,2023-04-30,60.0
+            Preço Médio,Clí+,2023-05-31,80.0
+            Preço Médio,Clí+,2023-06-30,38.0
+            Preço Médio,Clí+,2023-07-31,70.01
+            Preço Médio,,2023-01-31,276.0
+            Preço Médio,,2023-02-28,305.0
+            Preço Médio,,2023-03-31,30.0
+            Preço Médio,,2023-04-30,305.0
+            Preço Médio,,2023-05-31,260.0
+            Preço Médio,,2023-06-30,50.0
+            Preço Médio,,2023-07-31,0.0
+        """
+        agg_categoria_mock_flattened_expected = pd.read_csv(StringIO(agg_categoria_mock_flattened_expected_csv))
+        agg_categoria_mock_flattened_expected = agg_categoria_mock_flattened_expected.rename(columns={"0": 0})
+        agg_categoria_mock_flattened_expected["level_0"] = agg_categoria_mock_flattened_expected["level_0"].str.strip()
+        agg_categoria_mock_flattened_expected["Data e hora"] = pd.to_datetime(agg_categoria_mock_flattened_expected["Data e hora"])
+
+        pd.testing.assert_frame_equal(agg_categoria_mock_flattened, agg_categoria_mock_flattened_expected)
+
     def test_agg_tempo(self):
         sales_mock_csv = """Data e hora,Bruto,Quantidade,__categoria,__pilar,__ticket,__clientes_ativos
             2023-01-11 11:43:00,5.9,1.0,B&T+P&S,PetShop,0.16666666666666666,0.1
@@ -399,7 +506,6 @@ class TestDataAnalysisSales(unittest.TestCase):
         #    STILL NEED TO DO THAT
         #
         #    enrich function test
-        #    "agg_categoria_df": agg_categoria_df.loc[agg_categoria_df.index[-6:]],
         #    "agg_exception_df": exception_df.loc[exception_df.index[-6:]],
         #    "unique_mapping_df": unique_mapping_df,
         #    "vendas_missing_df": sales_missing_df,
