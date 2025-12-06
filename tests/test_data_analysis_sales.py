@@ -7,11 +7,12 @@ import numpy as np
 from datetime import datetime
 
 from etl_simplesvet.transformers.transform_pandas_data_analysis_sales import (
-    get_inadimplencia_df,
     get_agg_grupo_df,
     get_agg_pilar_df,
     get_agg_categoria_df,
-    get_agg_tempo_df
+    get_agg_tempo_df,
+    get_inadimplencia_df,
+    get_exception_df
 )
 
 def _test_output_xlsx_files(file_stems):
@@ -464,6 +465,78 @@ class TestDataAnalysisSales(unittest.TestCase):
 
         pd.testing.assert_frame_equal(agg_tempo_mock, agg_tempo_mock_expected)
 
+    def test_exception(self):
+        # ["Data e hora","Quantidade","Bruto","__pilar","__grupo"]
+        sales_mock_csv = """Data e hora,Quantidade,Bruto,__pilar,__grupo
+            2023-01-21 10:16:00,1.0,55.0,Banho e Tosa,Banho
+            2023-01-16 11:32:00,1.0,8.0,Banho e Tosa,Outros BT
+            2023-01-17 17:07:00,1.0,35.0,Banho e Tosa,Tosa
+            2023-01-31 16:02:00,2.0,30.0,Banho e Tosa,Transporte
+            2023-01-27 13:55:00,1.0,500.0,Cirurgia,Cirurgia
+            2023-01-04 18:21:00,1.0,100.0,Cirurgia,Procedimentos Cirurgico
+            2023-01-17 11:49:00,1.0,120.0,Clínica,Consulta
+            2023-01-23 11:58:00,1.0,25.0,Clínica,Procedimentos Clínico
+            2023-01-16 16:08:00,1.0,80.0,Clínica,Vacina
+            2023-01-20 14:23:00,1.0,320.0,Exames,Imagem
+            2023-01-18 15:27:00,1.0,28.0,Exames,Laboratório
+            2023-01-27 14:07:00,1.0,80.0,Internação,Diária
+            2023-01-03 11:37:00,1.0,200.0,Internação,Procedimentos Internação
+            2023-01-13 18:21:00,1.0,71.9,NULL,NULL
+            2023-01-13 18:27:00,1.0,61.9,PetShop,Acessórios
+            2023-01-14 09:03:00,1.0,13.9,PetShop,Alimentos
+            2023-01-18 10:00:00,1.0,359.9,PetShop,Farmácia
+            2023-02-15 09:26:00,1.0,55.0,Banho e Tosa,Banho
+            2023-02-01 11:20:00,1.0,8.0,Banho e Tosa,Outros BT
+            2023-02-15 16:03:00,1.0,15.0,Banho e Tosa,Tosa
+            2023-02-27 11:49:00,1.0,10.0,Banho e Tosa,Transporte
+            2023-02-27 16:49:00,1.0,727.8,Cirurgia,Cirurgia
+            2023-02-14 19:48:00,1.0,380.0,Cirurgia,Procedimentos Cirurgico
+            2023-02-27 11:49:00,1.0,120.0,Clínica,Consulta
+            2023-02-03 11:25:00,1.0,65.0,Clínica,Procedimentos Clínico
+            2023-02-09 09:06:00,1.0,80.0,Clínica,Vacina
+            2023-02-15 13:15:00,1.0,320.0,Exames,Imagem
+            2023-02-10 09:25:00,1.0,56.7,Exames,Laboratório
+            2023-02-12 13:33:00,1.0,80.0,Internação,Diária
+            2023-02-15 16:42:00,1.0,200.0,Internação,Procedimentos Internação
+            2023-02-01 10:53:00,1.0,305.0,NULL,NULL
+            2023-02-09 08:39:00,1.0,22.9,PetShop,Acessórios
+            2023-02-28 17:00:00,2.0,15.8,PetShop,Alimentos
+            2023-02-07 15:57:00,1.0,145.9,PetShop,Farmácia
+            2023-03-07 10:12:00,1.0,55.0,Banho e Tosa,Banho
+            2023-03-17 13:05:00,1.0,35.0,Banho e Tosa,Outros BT
+            2023-03-30 08:15:00,1.0,30.0,Banho e Tosa,Tosa
+            2023-03-30 13:01:00,1.0,5.0,Banho e Tosa,Transporte
+            2023-03-08 12:03:00,1.0,300.0,Cirurgia,Cirurgia
+            2023-03-17 15:07:00,1.0,600.0,Cirurgia,Procedimentos Cirurgico
+            2023-03-24 15:52:00,1.0,100.0,Clínica,Consulta
+            2023-03-01 17:56:00,2.0,20.0,Clínica,Procedimentos Clínico
+            2023-03-15 14:41:00,1.0,290.0,Clínica,Vacina
+            2023-03-07 17:44:00,1.0,180.0,Exames,Imagem
+            2023-03-21 10:11:00,1.0,45.0,Exames,Laboratório
+            2023-03-07 16:09:00,1.0,80.0,Internação,Diária
+            2023-03-14 12:24:00,1.0,200.0,Internação,Procedimentos Internação
+            2023-03-04 09:19:00,1.0,38.0,NULL,NULL
+            2023-03-17 12:03:00,1.0,24.9,PetShop,Acessórios
+            2023-03-24 10:58:00,4.0,23.6,PetShop,Alimentos
+            2023-03-16 09:25:00,2.0,82.6,PetShop,Farmácia
+        """
+        df_sales_mock = pd.read_csv(StringIO(sales_mock_csv))
+        df_sales_mock["Data e hora"] = pd.to_datetime(df_sales_mock["Data e hora"])
+        grouped_sales_mock = df_sales_mock.groupby([pd.Grouper(key = "Data e hora", freq = '1ME'), "__pilar", "__grupo"])
+
+        df_exception = get_exception_df(grouped_sales_mock)
+        exception_expected_csv = """Data e hora,Consultas/Cirurgias,Consultas/Internação,Exames/Consultas
+            2023-01-31,1.0,1.0,2.0
+            2023-02-28,1.0,1.0,2.0
+            2023-03-31,1.0,1.0,2.0
+        """
+        df_exception_expected = pd.read_csv(StringIO(exception_expected_csv))
+        df_exception_expected = df_exception_expected.set_index("Data e hora")
+        df_exception_expected.index = pd.to_datetime(df_exception_expected.index)
+        df_exception_expected.index.freq = "ME"
+
+        pd.testing.assert_frame_equal(df_exception, df_exception_expected)
+
     def test_inadimplencia(self):
         sales_mock_csv = """Data e hora,Status da venda,Bruto
             2024-05-12 10:27:00,Baixado,400.0
@@ -506,8 +579,5 @@ class TestDataAnalysisSales(unittest.TestCase):
         #    STILL NEED TO DO THAT
         #
         #    enrich function test
-        #    "agg_exception_df": exception_df.loc[exception_df.index[-6:]],
-        #    "unique_mapping_df": unique_mapping_df,
-        #    "vendas_missing_df": sales_missing_df,
         #    "sales_df": sales_df,
 
