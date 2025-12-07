@@ -18,7 +18,6 @@ from etl_simplesvet.transformers.transform_pandas_data_analysis_sales import (
 
 class TestDataAnalysisSales(unittest.TestCase):
 
-
     def test_enrich_sales(self):
         sales_mock_csv = """Data e hora,Venda,Código,Produto/serviço
             2023-09-16 11:42:00,52190,6053.0,sedação até 5 a 10kg
