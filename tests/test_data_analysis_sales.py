@@ -482,11 +482,6 @@ class TestDataAnalysisSales(unittest.TestCase):
         pd.testing.assert_frame_equal(agg_mock_pilar_flattened ,agg_pilar_flattened_expected)
 
     def test_agg_categoria(self):
-        #sales_groupedby_categoria = sales_df.groupby([pd.Grouper(key = 'Data e hora', freq = '1ME'), '__categoria'], dropna = False)
-
-        #sales_mock_csv = """Data e hora,Bruto,Quantidade,__categoria
-        # ["Data e hora","Bruto","Quantidade",__categoria"]
-
         sales_mock_csv = """Data e hora,Bruto,Quantidade,__categoria
             2023-01-18 08:16:00,68.9,1.0,B&T+P&S
             2023-01-27 10:23:00,130.0,1.0,Clí+
@@ -642,7 +637,6 @@ class TestDataAnalysisSales(unittest.TestCase):
         pd.testing.assert_frame_equal(agg_tempo_mock, agg_tempo_mock_expected)
 
     def test_exception(self):
-        # ["Data e hora","Quantidade","Bruto","__pilar","__grupo"]
         sales_mock_csv = """Data e hora,Quantidade,Bruto,__pilar,__grupo
             2023-01-21 10:16:00,1.0,55.0,Banho e Tosa,Banho
             2023-01-16 11:32:00,1.0,8.0,Banho e Tosa,Outros BT
