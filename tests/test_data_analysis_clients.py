@@ -5,7 +5,8 @@ from pathlib import Path
 import pandas as pd
 
 from etl_simplesvet.transformers.transform_pandas_data_analysis_clients import (
-    agg_clientes_mapping
+    agg_clientes_mapping,
+    agg_clients_total
 )
 
 def _test_output_xlsx_files(file_stems):
@@ -36,7 +37,7 @@ class TestDataAnalysisClients(unittest.TestCase):
         file_stems = ("clientes_csv", "test_agg_clientes")
         _test_output_xlsx_files(file_stems)
 
-    def test_agg_clientes_mapping(clients_df):
+    def test_agg_clientes_mapping(self):
         clients_mock_csv = """Inclusão,Origem,_grupo
             2023-01-18,fachada da loja,Fachada
             2023-01-27,google,Google
@@ -121,8 +122,56 @@ class TestDataAnalysisClients(unittest.TestCase):
 
         pd.testing.assert_frame_equal(agg_flattened, agg_expected_flattened)
 
+    def test_agg_clientes_total(self):
+        clients_mock_csv = """Inclusão,Origem
+            2023-02-14,indicação de funcionários
+            2023-01-09,google
+            2023-03-04,fachada da loja
+            2023-01-04,fachada da loja
+            2023-01-09,fachada da loja
+            2023-03-30,instagram/facebook
+            2023-03-03,indicação de clientes
+            2023-03-31,fachada da loja
+            2023-03-23,indicação de clientes
+            2023-02-14,plano de saúde
+            2023-01-26,indicação de clientes
+            2023-01-18,indicação de clientes
+            2023-01-14,indicação de clientes
+            2023-01-04,indicação de funcionários
+            2023-03-28,instagram/facebook
+            2023-01-31,indicação de funcionários
+            2023-01-07,google
+            2023-03-11,google
+            2023-01-02,fachada da loja
+            2023-02-14,google
+            2023-01-16,fachada da loja
+            2023-01-06,fachada da loja
+            2023-01-25,indicação de clientes
+            2023-01-18,indicação de clientes
+            2023-01-20,fachada da loja
+            2023-01-05,indicação de clientes
+            2023-01-11,fachada da loja
+            2023-02-06,internet
+            2023-01-14,indicação de clientes
+            2023-01-04,google
+        """
+        df_clients_mock = pd.read_csv(StringIO(clients_mock_csv))
+        df_clients_mock["Inclusão"] = pd.to_datetime(df_clients_mock["Inclusão"])
+        agg = agg_clients_total(df_clients_mock)
+
+        agg_expected_csv = """Inclusão,Quantidade Totalizada Clientes
+            2023-01-31,19
+            2023-02-28,4
+            2023-03-31,7
+        """
+        agg_expected = pd.read_csv(StringIO(agg_expected_csv))
+        agg_expected["Inclusão"] = pd.to_datetime(agg_expected["Inclusão"])
+        agg_expected = agg_expected.set_index("Inclusão")
+        agg_expected.index.freq = "1ME"
+
+        pd.testing.assert_frame_equal(agg, agg_expected)
+
 #       Still need to work on:
 #
 #       clients_df = enrich_clients_df(clients_df, mapping_clients_df)
-#       agg_clientes_total = agg_clients_total(clients_df)
 #       agg_v_clientes = agg_vendas_clientes(sales_df)
