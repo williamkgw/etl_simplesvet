@@ -5,6 +5,7 @@ from pathlib import Path
 import pandas as pd
 
 from etl_simplesvet.transformers.transform_pandas_data_analysis_clients import (
+    agg_vendas_clientes,
     agg_clientes_mapping,
     agg_clients_total
 )
@@ -36,6 +37,58 @@ class TestDataAnalysisClients(unittest.TestCase):
     def test_clients(self):
         file_stems = ("clientes_csv", "test_agg_clientes")
         _test_output_xlsx_files(file_stems)
+
+    def test_agg_vendas_clientes(self):
+        clients_mock_csv = """Data e hora,Cliente
+            2023-01-04 17:36:00,Simone Brust
+            2023-01-13 11:00:00,Regina Mendes
+            2023-01-31 15:38:00,Juselma Correia
+            2023-01-03 11:37:00,Karen Nunes
+            2023-01-11 11:43:00,Lucas Moura
+            2023-01-13 15:24:00,Keila Araujo
+            2023-01-18 17:22:00,Maricelia Lopes
+            2023-01-16 16:19:00,Laleska Freire
+            2023-01-16 15:59:00,Flavia Albano
+            2023-01-31 15:38:00,Juselma Correia
+            2023-02-27 15:38:00,Rafaela Carvalho
+            2023-02-13 09:16:00,Diana Sother
+            2023-02-14 08:38:00,Ariomar Souza
+            2023-02-07 11:16:00,Josenilton Santos
+            2023-02-28 16:32:00,Jeanete Sobral
+            2023-02-01 14:17:00,Isadora Souza
+            2023-02-14 10:10:00,Rita Anjos
+            2023-02-01 10:53:00,Maria Felice
+            2023-02-14 10:47:00,Mayara Araújo
+            2023-02-02 13:48:00,Isabelle Lucca
+            2023-03-09 09:18:00,Carolina Alves
+            2023-03-10 08:16:00,Grace Ferreira
+            2023-03-10 09:32:00,Ana Fahel
+            2023-03-08 08:58:00,Ana Cristina
+            2023-03-13 10:05:00,Valdelice Rabelo
+            2023-03-22 15:21:00,Keila Araujo
+            2023-03-15 14:41:00,Ilca Duarte
+            2023-03-14 08:37:00,Sonia Almeida
+            2023-03-23 08:50:00,Ana Cristina
+            2023-03-13 09:43:00,Fernando Ferraz
+        """
+        df_clients_mock = pd.read_csv(StringIO(clients_mock_csv))
+        df_clients_mock["Data e hora"] = pd.to_datetime(df_clients_mock["Data e hora"])
+
+        agg = agg_vendas_clientes(df_clients_mock)
+
+        agg_expected_csv = """Data e hora,Quantidade Totalizada Clientes Ativos
+            2023-01-31,0
+            2023-02-28,9
+            2023-03-31,19
+        """
+
+        agg_expected = pd.read_csv(StringIO(agg_expected_csv))
+        agg_expected["Data e hora"] = pd.to_datetime(agg_expected["Data e hora"])
+        agg_expected = agg_expected.set_index("Data e hora")
+        agg_expected.index.freq = "1ME"
+        agg_expected = agg_expected["Quantidade Totalizada Clientes Ativos"]
+
+        pd.testing.assert_series_equal(agg, agg_expected)
 
     def test_agg_clientes_mapping(self):
         clients_mock_csv = """Inclusão,Origem,_grupo
@@ -174,4 +227,3 @@ class TestDataAnalysisClients(unittest.TestCase):
 #       Still need to work on:
 #
 #       clients_df = enrich_clients_df(clients_df, mapping_clients_df)
-#       agg_v_clientes = agg_vendas_clientes(sales_df)
