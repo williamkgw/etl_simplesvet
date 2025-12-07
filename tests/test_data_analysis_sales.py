@@ -1,12 +1,12 @@
 import unittest
 
 from io import StringIO
-from pathlib import Path
 import pandas as pd
 import numpy as np
 from datetime import datetime
 
 from etl_simplesvet.transformers.transform_pandas_data_analysis_sales import (
+    enrich_sales_df,
     get_agg_grupo_df,
     get_agg_pilar_df,
     get_agg_categoria_df,
@@ -15,34 +15,211 @@ from etl_simplesvet.transformers.transform_pandas_data_analysis_sales import (
     get_exception_df
 )
 
-def _test_output_xlsx_files(file_stems):
-        DATASET_OUTPUT_PATH = Path("datasets/output")
-
-        file_paths = [
-                (DATASET_OUTPUT_PATH.joinpath(f"{file_stem}.xlsx"), DATASET_OUTPUT_PATH.joinpath(f"{file_stem}_1.xlsx"))
-                for file_stem in file_stems
-        ]
-
-        for file, comparison in file_paths:
-            dfs = pd.read_excel(file, sheet_name = None)
-            dfs_comparison = pd.read_excel(comparison, sheet_name = None)
-
-            assert dfs.keys() == dfs_comparison.keys()
-            sheets = dfs.keys()
-
-            for sheet in sheets:
-                try:
-                    pd.testing.assert_frame_equal(dfs[sheet], dfs_comparison[sheet])
-                except Exception as e:
-                    raise Exception(f"{file}:{sheet} with error {e}")
-
-
 
 class TestDataAnalysisSales(unittest.TestCase):
 
-    def test_sales(self):
-        file_stems = ("missing_vendas_csv", "vendas_csv", "test_agg")
-        _test_output_xlsx_files(file_stems)
+
+    def test_enrich_sales(self):
+        sales_mock_csv = """Data e hora,Venda,Código,Produto/serviço
+            2023-09-16 11:42:00,52190,6053.0,sedação até 5 a 10kg
+            2025-04-07 14:24:00,63730,6662.0,internamento dia até 10kg
+            2024-11-09 10:34:00,61593,4539.0,"sorologia- hemoparasitas quantitativo-pcr (ehrlichia spp, babesia spp, anaplasma spp) cl"
+            2023-07-03 12:42:00,52113,2239.0,traumeel por ml
+            2023-09-22 09:49:00,53837,6150.0,sedação até 5 a 10kg
+            2023-09-28 18:06:00,53962,4993.0,teste accuvet erliquiose
+            2024-01-31 10:52:00,56559,5835.0,vitalpet contagem de reticulócitos cod 1607
+            2024-05-08 12:40:00,58335,5648.0,vitalpet diária internação 11 a 15kg cod 424(sem medicamentos e materiais)
+            2024-10-01 08:32:00,60908,2152.0,internamento dia até 10kg
+            2023-08-03 16:39:00,52771,6059.0,dedeira un
+            2023-08-19 12:17:00,53118,6107.0,dedeira un
+            2023-08-19 13:32:00,53125,6106.0,bezzie risoto frango e vegetais 250gr
+            2023-08-23 17:25:00,53191,3918.0,dedeira un
+            2023-08-29 12:01:00,53309,5981.0,bezzie risoto frango e vegetais 250gr
+            2023-08-29 12:28:00,53313,5335.0,bezzie risoto frango e vegetais 250gr
+            2023-09-11 10:49:00,53571,799.0,bezzie risoto frango e vegetais 250gr
+            2023-09-14 14:57:00,53658,4778.0,bezzie risoto frango e vegetais 250gr
+            2023-09-23 10:01:00,53861,5978.0,bezzie risoto frango e vegetais 250gr
+            2023-09-30 08:27:00,53998,5830.0,bezzie risoto frango e vegetais 250gr
+            2023-10-05 18:28:00,54114,6148.0,bezzie risoto frango e vegetais 250gr
+            2023-12-18 15:51:00,55619,3049.0,bezzie risoto frango e vegetais 250gr
+            2024-01-02 12:00:00,55909,5747.0,bolsa tricoline passeio (fofuchos pet)
+            2024-02-27 15:42:00,57021,3763.0,guia para cachorros jacquard gibson pp
+            2024-03-09 13:30:00,57285,0.0,dedeira un
+            2024-03-11 09:10:00,57297,0.0,dedeira un
+            2024-07-09 16:03:00,59518,6438.0,dedeira un
+            2024-08-08 15:13:00,60040,2354.0,peitoral para cachorros h nox lumen p
+            2024-09-06 09:24:00,60526,6464.0,brinq cat guizo penas bulet bom amigo
+            2024-09-12 16:22:00,60623,6073.0,mord. pelucia pop bicho lobo
+            2024-09-21 12:22:00,60771,3624.0,mord pelucia macaco gd marrom kelev
+            2024-10-10 09:16:00,61090,0.0,allequa 10ml
+            2024-12-13 15:31:00,62069,4458.0,mord. pelucia pop bicho lobo
+            2025-02-01 10:52:00,62808,2152.0,mord. pelucia pop bicho lobo
+            2025-04-09 14:46:00,63779,5491.0,vitalpet diária internação 11 a 15kg cod 424(sem medicamentos e materiais)
+            2023-02-24 15:49:00,49520,5237.0,dedeira un
+            2023-05-19 14:51:00,51203,5745.0,dedeira un
+            2023-05-26 12:25:00,51333,2152.0,bezzie risoto frango e vegetais 250gr
+            2023-06-19 14:14:00,51820,3049.0,bezzie risoto frango e vegetais 250gr
+            2023-07-07 17:20:00,52221,5382.0,dedeira un
+            2023-07-19 11:13:00,52431,3049.0,bezzie risoto frango e vegetais 250gr
+            2023-07-19 11:13:00,52431,3049.0,bezzie risoto frango e vegetais 250gr
+            2023-06-30 18:10:00,52084,2239.0,traumeel por ml
+            2023-11-09 14:50:00,54817,2429.0,teste accuvet erliquiose
+            2024-05-08 12:17:00,58329,5648.0,vitalpet diária internação 11 a 15kg cod 424(sem medicamentos e materiais)
+            2024-05-09 12:02:00,58410,5648.0,vitalpet diária internação 11 a 15kg cod 424(sem medicamentos e materiais)
+            2024-09-12 14:38:00,60616,6155.0,internamento dia até 10kg
+            2024-11-08 13:10:00,61579,3458.0,internamento dia até 10kg
+            2023-01-18 18:18:00,48750,5842.0,bezzie risoto frango e vegetais 250gr
+            2023-01-21 11:32:00,48843,2152.0,bezzie risoto frango e vegetais 250gr
+            2023-06-02 08:31:00,51477,5858.0,bezzie risoto frango e vegetais 250gr
+            2023-01-11 13:57:00,48566,5825.0,dedeira un
+            2023-01-13 17:45:00,48630,5827.0,dedeira un
+            2023-01-21 12:17:00,48845,3049.0,bezzie risoto frango e vegetais 250gr
+            2023-02-03 12:23:00,49125,3241.0,bezzie risoto frango e vegetais 250gr
+            2023-03-15 09:18:00,49916,2152.0,bezzie risoto frango e vegetais 250gr
+            2023-03-18 13:54:00,50015,5903.0,bezzie risoto frango e vegetais 250gr
+            2023-03-23 08:50:00,50075,2152.0,bezzie risoto frango e vegetais 250gr
+            2023-03-23 08:50:00,50075,2152.0,bezzie risoto frango e vegetais 250gr
+            2023-04-15 10:07:00,50541,5465.0,allequa 10ml
+            2023-05-04 10:57:00,50882,3049.0,bezzie risoto frango e vegetais 250gr
+            2023-06-06 09:53:00,51548,6023.0,bezzie risoto frango e vegetais 250gr
+            2023-06-30 12:36:00,52062,3049.0,bezzie risoto frango e vegetais 250gr
+            2023-07-04 08:29:00,52121,5069.0,bezzie risoto frango e vegetais 250gr
+            2023-07-06 11:56:00,52180,2152.0,dedeira un
+            2023-07-07 12:12:00,52206,0.0,dedeira un
+            2023-07-11 10:39:00,52267,3049.0,bezzie risoto frango e vegetais 250gr
+            2023-07-20 08:52:00,52442,5069.0,bezzie risoto frango e vegetais 250gr
+            2023-07-21 16:57:00,52506,0.0,dedeira un
+            2023-07-29 08:59:00,52659,6081.0,dedeira un
+            2023-09-14 13:37:00,53656,3049.0,bezzie risoto frango e vegetais 250gr
+            2023-12-06 09:09:00,55341,2152.0,retangular imperial gg estampado
+            2023-12-06 09:09:00,55341,2152.0,retangular imperial gg estampado
+            2024-01-22 17:48:00,56368,0.0,"feline satiety 1,5 kg - un"
+            2024-02-19 09:26:00,56853,5186.0,fitoclean 250ml
+            2024-03-06 07:59:00,57186,6327.0,bolsa tricoline passeio (fofuchos pet)
+            2024-11-08 08:40:00,61563,2896.0,brinq cat guizo penas bulet bom amigo
+            2023-01-20 16:21:00,48814,5853.0,bezzie risoto frango e vegetais 250gr
+            2023-05-06 16:26:00,50950,0.0,dedeira un
+            2023-10-11 12:14:00,54227,0.0,bezzie risoto frango e vegetais 250gr
+            2023-12-06 15:59:00,55359,4267.0,hydra groomers colonia forever gold 12
+        """
+        df_sales_mock = pd.read_csv(StringIO(sales_mock_csv))
+        df_sales_mock["Data e hora"] = pd.to_datetime(df_sales_mock["Data e hora"])
+
+        mapping_sales_mock_csv = '''Produto/serviço,Categoria,Pilar,Grupo
+            internamento dia até 10kg,Clí+,Internação,Diária
+            "feline satiety 1,5 kg - un",B&T+P&S,PetShop,Alimentos
+            traumeel por ml,Clí+,Clínica,Procedimentos Clínico
+            bezzie risoto frango e vegetais 250gr,B&T+P&S,PetShop,Alimentos
+            teste accuvet erliquiose,B&T+P&S,PetShop,Farmácia
+            fitoclean 250ml,B&T+P&S,PetShop,Farmácia
+            dedeira un,B&T+P&S,PetShop,Acessórios
+            sedação até 5 a 10kg,Clí+,Cirurgia,Procedimentos Cirurgico
+            vitalpet diária internação 11 a 15kg cod 424(sem medicamentos e materiais),Clí+,Internação,Diária
+            bolsa tricoline passeio (fofuchos pet),B&T+P&S,PetShop,Acessórios
+            vitalpet contagem de reticulócitos cod 1607,Clí+,Exames,Laboratório
+            guia para cachorros jacquard gibson pp,B&T+P&S,PetShop,Acessórios
+            mord pelucia macaco gd marrom kelev,B&T+P&S,PetShop,Acessórios
+            mord. pelucia pop bicho lobo,B&T+P&S,PetShop,Acessórios
+            hydra groomers colonia forever gold 12,B&T+P&S,PetShop,Acessórios
+            retangular imperial gg estampado,B&T+P&S,PetShop,Farmácia
+            allequa 10ml,B&T+P&S,PetShop,Farmácia
+            "sorologia- hemoparasitas quantitativo-pcr (ehrlichia spp, babesia spp, anaplasma spp) cl",Clí+,Exames,Laboratório
+            peitoral para cachorros h nox lumen p,B&T+P&S,PetShop,Acessórios
+            brinq cat guizo penas bulet bom amigo,B&T+P&S,PetShop,Acessórios
+        '''
+        df_mapping_sales_mock = pd.read_csv(StringIO(mapping_sales_mock_csv), skipinitialspace = True)
+        df_mapping_sales_mock = df_mapping_sales_mock.set_index("Produto/serviço")
+
+        df_sales_enrich = enrich_sales_df(df_sales_mock, df_mapping_sales_mock)
+
+        sales_enrich_expected_csv = """Data e hora,Venda,Código,Produto/serviço,__categoria,__pilar,__grupo,__ano,__mes,__ticket,__ticket_por_pilar,__clientes_ativos,__clientes_ativo_por_pilar
+            2023-09-16 11:42:00,52190,6053.0,sedação até 5 a 10kg,Clí+,Cirurgia,Procedimentos Cirurgico,2023,9,1.0,1.0,1.0,1.0
+            2025-04-07 14:24:00,63730,6662.0,internamento dia até 10kg,Clí+,Internação,Diária,2025,4,1.0,1.0,1.0,1.0
+            2024-11-09 10:34:00,61593,4539.0,"sorologia- hemoparasitas quantitativo-pcr (ehrlichia spp, babesia spp, anaplasma spp) cl",Clí+,Exames,Laboratório,2024,11,1.0,1.0,1.0,1.0
+            2023-07-03 12:42:00,52113,2239.0,traumeel por ml,Clí+,Clínica,Procedimentos Clínico,2023,7,1.0,1.0,1.0,1.0
+            2023-09-22 09:49:00,53837,6150.0,sedação até 5 a 10kg,Clí+,Cirurgia,Procedimentos Cirurgico,2023,9,1.0,1.0,1.0,1.0
+            2023-09-28 18:06:00,53962,4993.0,teste accuvet erliquiose,B&T+P&S,PetShop,Farmácia,2023,9,1.0,1.0,1.0,1.0
+            2024-01-31 10:52:00,56559,5835.0,vitalpet contagem de reticulócitos cod 1607,Clí+,Exames,Laboratório,2024,1,1.0,1.0,1.0,1.0
+            2024-05-08 12:40:00,58335,5648.0,vitalpet diária internação 11 a 15kg cod 424(sem medicamentos e materiais),Clí+,Internação,Diária,2024,5,1.0,1.0,0.3333333333333333,0.3333333333333333
+            2024-10-01 08:32:00,60908,2152.0,internamento dia até 10kg,Clí+,Internação,Diária,2024,10,1.0,1.0,1.0,1.0
+            2023-08-03 16:39:00,52771,6059.0,dedeira un,B&T+P&S,PetShop,Acessórios,2023,8,1.0,1.0,1.0,1.0
+            2023-08-19 12:17:00,53118,6107.0,dedeira un,B&T+P&S,PetShop,Acessórios,2023,8,1.0,1.0,1.0,1.0
+            2023-08-19 13:32:00,53125,6106.0,bezzie risoto frango e vegetais 250gr,B&T+P&S,PetShop,Alimentos,2023,8,1.0,1.0,1.0,1.0
+            2023-08-23 17:25:00,53191,3918.0,dedeira un,B&T+P&S,PetShop,Acessórios,2023,8,1.0,1.0,1.0,1.0
+            2023-08-29 12:01:00,53309,5981.0,bezzie risoto frango e vegetais 250gr,B&T+P&S,PetShop,Alimentos,2023,8,1.0,1.0,1.0,1.0
+            2023-08-29 12:28:00,53313,5335.0,bezzie risoto frango e vegetais 250gr,B&T+P&S,PetShop,Alimentos,2023,8,1.0,1.0,1.0,1.0
+            2023-09-11 10:49:00,53571,799.0,bezzie risoto frango e vegetais 250gr,B&T+P&S,PetShop,Alimentos,2023,9,1.0,1.0,1.0,1.0
+            2023-09-14 14:57:00,53658,4778.0,bezzie risoto frango e vegetais 250gr,B&T+P&S,PetShop,Alimentos,2023,9,1.0,1.0,1.0,1.0
+            2023-09-23 10:01:00,53861,5978.0,bezzie risoto frango e vegetais 250gr,B&T+P&S,PetShop,Alimentos,2023,9,1.0,1.0,1.0,1.0
+            2023-09-30 08:27:00,53998,5830.0,bezzie risoto frango e vegetais 250gr,B&T+P&S,PetShop,Alimentos,2023,9,1.0,1.0,1.0,1.0
+            2023-10-05 18:28:00,54114,6148.0,bezzie risoto frango e vegetais 250gr,B&T+P&S,PetShop,Alimentos,2023,10,1.0,1.0,1.0,1.0
+            2023-12-18 15:51:00,55619,3049.0,bezzie risoto frango e vegetais 250gr,B&T+P&S,PetShop,Alimentos,2023,12,1.0,1.0,1.0,1.0
+            2024-01-02 12:00:00,55909,5747.0,bolsa tricoline passeio (fofuchos pet),B&T+P&S,PetShop,Acessórios,2024,1,1.0,1.0,1.0,1.0
+            2024-02-27 15:42:00,57021,3763.0,guia para cachorros jacquard gibson pp,B&T+P&S,PetShop,Acessórios,2024,2,1.0,1.0,1.0,1.0
+            2024-03-09 13:30:00,57285,0.0,dedeira un,B&T+P&S,PetShop,Acessórios,2024,3,1.0,1.0,0.5,0.5
+            2024-03-11 09:10:00,57297,0.0,dedeira un,B&T+P&S,PetShop,Acessórios,2024,3,1.0,1.0,0.5,0.5
+            2024-07-09 16:03:00,59518,6438.0,dedeira un,B&T+P&S,PetShop,Acessórios,2024,7,1.0,1.0,1.0,1.0
+            2024-08-08 15:13:00,60040,2354.0,peitoral para cachorros h nox lumen p,B&T+P&S,PetShop,Acessórios,2024,8,1.0,1.0,1.0,1.0
+            2024-09-06 09:24:00,60526,6464.0,brinq cat guizo penas bulet bom amigo,B&T+P&S,PetShop,Acessórios,2024,9,1.0,1.0,1.0,1.0
+            2024-09-12 16:22:00,60623,6073.0,mord. pelucia pop bicho lobo,B&T+P&S,PetShop,Acessórios,2024,9,1.0,1.0,1.0,1.0
+            2024-09-21 12:22:00,60771,3624.0,mord pelucia macaco gd marrom kelev,B&T+P&S,PetShop,Acessórios,2024,9,1.0,1.0,1.0,1.0
+            2024-10-10 09:16:00,61090,0.0,allequa 10ml,B&T+P&S,PetShop,Farmácia,2024,10,1.0,1.0,1.0,1.0
+            2024-12-13 15:31:00,62069,4458.0,mord. pelucia pop bicho lobo,B&T+P&S,PetShop,Acessórios,2024,12,1.0,1.0,1.0,1.0
+            2025-02-01 10:52:00,62808,2152.0,mord. pelucia pop bicho lobo,B&T+P&S,PetShop,Acessórios,2025,2,1.0,1.0,1.0,1.0
+            2025-04-09 14:46:00,63779,5491.0,vitalpet diária internação 11 a 15kg cod 424(sem medicamentos e materiais),Clí+,Internação,Diária,2025,4,1.0,1.0,1.0,1.0
+            2023-02-24 15:49:00,49520,5237.0,dedeira un,B&T+P&S,PetShop,Acessórios,2023,2,1.0,1.0,1.0,1.0
+            2023-05-19 14:51:00,51203,5745.0,dedeira un,B&T+P&S,PetShop,Acessórios,2023,5,1.0,1.0,1.0,1.0
+            2023-05-26 12:25:00,51333,2152.0,bezzie risoto frango e vegetais 250gr,B&T+P&S,PetShop,Alimentos,2023,5,1.0,1.0,1.0,1.0
+            2023-06-19 14:14:00,51820,3049.0,bezzie risoto frango e vegetais 250gr,B&T+P&S,PetShop,Alimentos,2023,6,1.0,1.0,0.5,0.5
+            2023-07-07 17:20:00,52221,5382.0,dedeira un,B&T+P&S,PetShop,Acessórios,2023,7,1.0,1.0,1.0,1.0
+            2023-07-19 11:13:00,52431,3049.0,bezzie risoto frango e vegetais 250gr,B&T+P&S,PetShop,Alimentos,2023,7,0.5,0.5,0.3333333333333333,0.3333333333333333
+            2023-07-19 11:13:00,52431,3049.0,bezzie risoto frango e vegetais 250gr,B&T+P&S,PetShop,Alimentos,2023,7,0.5,0.5,0.3333333333333333,0.3333333333333333
+            2023-06-30 18:10:00,52084,2239.0,traumeel por ml,Clí+,Clínica,Procedimentos Clínico,2023,6,1.0,1.0,1.0,1.0
+            2023-11-09 14:50:00,54817,2429.0,teste accuvet erliquiose,B&T+P&S,PetShop,Farmácia,2023,11,1.0,1.0,1.0,1.0
+            2024-05-08 12:17:00,58329,5648.0,vitalpet diária internação 11 a 15kg cod 424(sem medicamentos e materiais),Clí+,Internação,Diária,2024,5,1.0,1.0,0.3333333333333333,0.3333333333333333
+            2024-05-09 12:02:00,58410,5648.0,vitalpet diária internação 11 a 15kg cod 424(sem medicamentos e materiais),Clí+,Internação,Diária,2024,5,1.0,1.0,0.3333333333333333,0.3333333333333333
+            2024-09-12 14:38:00,60616,6155.0,internamento dia até 10kg,Clí+,Internação,Diária,2024,9,1.0,1.0,1.0,1.0
+            2024-11-08 13:10:00,61579,3458.0,internamento dia até 10kg,Clí+,Internação,Diária,2024,11,1.0,1.0,1.0,1.0
+            2023-01-18 18:18:00,48750,5842.0,bezzie risoto frango e vegetais 250gr,B&T+P&S,PetShop,Alimentos,2023,1,1.0,1.0,1.0,1.0
+            2023-01-21 11:32:00,48843,2152.0,bezzie risoto frango e vegetais 250gr,B&T+P&S,PetShop,Alimentos,2023,1,1.0,1.0,1.0,1.0
+            2023-06-02 08:31:00,51477,5858.0,bezzie risoto frango e vegetais 250gr,B&T+P&S,PetShop,Alimentos,2023,6,1.0,1.0,1.0,1.0
+            2023-01-11 13:57:00,48566,5825.0,dedeira un,B&T+P&S,PetShop,Acessórios,2023,1,1.0,1.0,1.0,1.0
+            2023-01-13 17:45:00,48630,5827.0,dedeira un,B&T+P&S,PetShop,Acessórios,2023,1,1.0,1.0,1.0,1.0
+            2023-01-21 12:17:00,48845,3049.0,bezzie risoto frango e vegetais 250gr,B&T+P&S,PetShop,Alimentos,2023,1,1.0,1.0,1.0,1.0
+            2023-02-03 12:23:00,49125,3241.0,bezzie risoto frango e vegetais 250gr,B&T+P&S,PetShop,Alimentos,2023,2,1.0,1.0,1.0,1.0
+            2023-03-15 09:18:00,49916,2152.0,bezzie risoto frango e vegetais 250gr,B&T+P&S,PetShop,Alimentos,2023,3,1.0,1.0,0.3333333333333333,0.3333333333333333
+            2023-03-18 13:54:00,50015,5903.0,bezzie risoto frango e vegetais 250gr,B&T+P&S,PetShop,Alimentos,2023,3,1.0,1.0,1.0,1.0
+            2023-03-23 08:50:00,50075,2152.0,bezzie risoto frango e vegetais 250gr,B&T+P&S,PetShop,Alimentos,2023,3,0.5,0.5,0.3333333333333333,0.3333333333333333
+            2023-03-23 08:50:00,50075,2152.0,bezzie risoto frango e vegetais 250gr,B&T+P&S,PetShop,Alimentos,2023,3,0.5,0.5,0.3333333333333333,0.3333333333333333
+            2023-04-15 10:07:00,50541,5465.0,allequa 10ml,B&T+P&S,PetShop,Farmácia,2023,4,1.0,1.0,1.0,1.0
+            2023-05-04 10:57:00,50882,3049.0,bezzie risoto frango e vegetais 250gr,B&T+P&S,PetShop,Alimentos,2023,5,1.0,1.0,1.0,1.0
+            2023-06-06 09:53:00,51548,6023.0,bezzie risoto frango e vegetais 250gr,B&T+P&S,PetShop,Alimentos,2023,6,1.0,1.0,1.0,1.0
+            2023-06-30 12:36:00,52062,3049.0,bezzie risoto frango e vegetais 250gr,B&T+P&S,PetShop,Alimentos,2023,6,1.0,1.0,0.5,0.5
+            2023-07-04 08:29:00,52121,5069.0,bezzie risoto frango e vegetais 250gr,B&T+P&S,PetShop,Alimentos,2023,7,1.0,1.0,0.5,0.5
+            2023-07-06 11:56:00,52180,2152.0,dedeira un,B&T+P&S,PetShop,Acessórios,2023,7,1.0,1.0,1.0,1.0
+            2023-07-07 12:12:00,52206,0.0,dedeira un,B&T+P&S,PetShop,Acessórios,2023,7,1.0,1.0,0.5,0.5
+            2023-07-11 10:39:00,52267,3049.0,bezzie risoto frango e vegetais 250gr,B&T+P&S,PetShop,Alimentos,2023,7,1.0,1.0,0.3333333333333333,0.3333333333333333
+            2023-07-20 08:52:00,52442,5069.0,bezzie risoto frango e vegetais 250gr,B&T+P&S,PetShop,Alimentos,2023,7,1.0,1.0,0.5,0.5
+            2023-07-21 16:57:00,52506,0.0,dedeira un,B&T+P&S,PetShop,Acessórios,2023,7,1.0,1.0,0.5,0.5
+            2023-07-29 08:59:00,52659,6081.0,dedeira un,B&T+P&S,PetShop,Acessórios,2023,7,1.0,1.0,1.0,1.0
+            2023-09-14 13:37:00,53656,3049.0,bezzie risoto frango e vegetais 250gr,B&T+P&S,PetShop,Alimentos,2023,9,1.0,1.0,1.0,1.0
+            2023-12-06 09:09:00,55341,2152.0,retangular imperial gg estampado,B&T+P&S,PetShop,Farmácia,2023,12,0.5,0.5,0.5,0.5
+            2023-12-06 09:09:00,55341,2152.0,retangular imperial gg estampado,B&T+P&S,PetShop,Farmácia,2023,12,0.5,0.5,0.5,0.5
+            2024-01-22 17:48:00,56368,0.0,"feline satiety 1,5 kg - un",B&T+P&S,PetShop,Alimentos,2024,1,1.0,1.0,1.0,1.0
+            2024-02-19 09:26:00,56853,5186.0,fitoclean 250ml,B&T+P&S,PetShop,Farmácia,2024,2,1.0,1.0,1.0,1.0
+            2024-03-06 07:59:00,57186,6327.0,bolsa tricoline passeio (fofuchos pet),B&T+P&S,PetShop,Acessórios,2024,3,1.0,1.0,1.0,1.0
+            2024-11-08 08:40:00,61563,2896.0,brinq cat guizo penas bulet bom amigo,B&T+P&S,PetShop,Acessórios,2024,11,1.0,1.0,1.0,1.0
+            2023-01-20 16:21:00,48814,5853.0,bezzie risoto frango e vegetais 250gr,B&T+P&S,PetShop,Alimentos,2023,1,1.0,1.0,1.0,1.0
+            2023-05-06 16:26:00,50950,0.0,dedeira un,B&T+P&S,PetShop,Acessórios,2023,5,1.0,1.0,1.0,1.0
+            2023-10-11 12:14:00,54227,0.0,bezzie risoto frango e vegetais 250gr,B&T+P&S,PetShop,Alimentos,2023,10,1.0,1.0,1.0,1.0
+            2023-12-06 15:59:00,55359,4267.0,hydra groomers colonia forever gold 12,B&T+P&S,PetShop,Acessórios,2023,12,1.0,1.0,1.0,1.0
+        """
+        df_sales_enrich_expected = pd.read_csv(StringIO(sales_enrich_expected_csv))
+        df_sales_enrich_expected["Data e hora"] = pd.to_datetime(df_sales_enrich_expected["Data e hora"])
+        df_sales_enrich_expected = df_sales_enrich_expected
+        df_sales_enrich_expected = df_sales_enrich_expected.astype({"__ano": "int32", "__mes": "int32"})
+
+        pd.testing.assert_frame_equal(df_sales_enrich, df_sales_enrich_expected)
 
     def test_agg_grupo(self):
         sales_mock_csv = """Data e hora,Quantidade,Bruto,__pilar,__grupo
@@ -575,9 +752,4 @@ class TestDataAnalysisSales(unittest.TestCase):
         s_inadimpl_expected.index = s_inadimpl_expected.index.to_period("M").to_timestamp("M")
 
         pd.testing.assert_series_equal(s_inadimpl, s_inadimpl_expected)
-
-        #    STILL NEED TO DO THAT
-        #
-        #    enrich function test
-        #    "sales_df": sales_df,
 
