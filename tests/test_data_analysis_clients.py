@@ -5,38 +5,142 @@ from pathlib import Path
 import pandas as pd
 
 from etl_simplesvet.transformers.transform_pandas_data_analysis_clients import (
+    enrich_clients_df,
     agg_vendas_clientes,
     agg_clientes_mapping,
     agg_clients_total
 )
 
-def _test_output_xlsx_files(file_stems):
-        DATASET_OUTPUT_PATH = Path("datasets/output")
-
-        file_paths = [
-                (DATASET_OUTPUT_PATH.joinpath(f"{file_stem}.xlsx"), DATASET_OUTPUT_PATH.joinpath(f"{file_stem}_1.xlsx"))
-                for file_stem in file_stems
-        ]
-
-        for file, comparison in file_paths:
-            dfs = pd.read_excel(file, sheet_name = None)
-            dfs_comparison = pd.read_excel(comparison, sheet_name = None)
-
-            assert dfs.keys() == dfs_comparison.keys()
-            sheets = dfs.keys()
-
-            for sheet in sheets:
-                try:
-                    pd.testing.assert_frame_equal(dfs[sheet], dfs_comparison[sheet])
-                except Exception as e:
-                    raise Exception(f"{file}:{sheet} with error {e}")
-
 
 class TestDataAnalysisClients(unittest.TestCase):
 
-    def test_clients(self):
-        file_stems = ("clientes_csv", "test_agg_clientes")
-        _test_output_xlsx_files(file_stems)
+    def test_enrich_clients(self):
+        clients_mock_csv = """Origem
+            _outros
+            _outros
+            _outros
+            facebook
+            facebook
+            facebook
+            fachada da loja
+            fachada da loja
+            fachada da loja
+            google
+            google
+            google
+            indicação de clientes
+            indicação de clientes
+            indicação de clientes
+            indicação de funcionários
+            indicação de funcionários
+            indicação de funcionários
+            indicação de parceiros
+            indicação de parceiros
+            indicação de parceiros
+            instagram/facebook
+            instagram/facebook
+            instagram/facebook
+            internet
+            internet
+            internet
+            panfleto
+            panfleto
+            panfleto
+            pet love
+            pet love
+            pet love
+            plamev
+            plamev
+            plamev
+            plano de saúde
+            plano de saúde
+            plano de saúde
+            revista
+            revista
+            revista
+            vital pet
+            vital pet
+            vital pet
+        """
+
+        df_clients_mock = pd.read_csv(StringIO(clients_mock_csv))
+        df_clients_mock["Origem"] = df_clients_mock["Origem"].str.strip()
+
+        mapping_clients_mock_csv = """Origem,Grupo
+            internet,Outros
+            fachada da loja,Fachada
+            _outros,Outros
+            indicação de clientes,Indicação Clientes
+            plano de saúde,Outros
+            google,Google
+            indicação de parceiros,Indicação Parceiros
+            indicação de funcionários,Indicação Funcionarios
+            instagran,Facebook/Instagram
+            panfleto,Campanha
+            revista,Campanha
+            facebook,Facebook/Instagram
+            vital pet,Outros
+            plamev,Outros
+            instagram/facebook,Facebook/Instagram
+            pet love,Outros
+        """
+        df_mapping_clients_mock = pd.read_csv(StringIO(mapping_clients_mock_csv))
+        df_mapping_clients_mock["Origem"] = df_mapping_clients_mock["Origem"].str.strip()
+        df_mapping_clients_mock = df_mapping_clients_mock.set_index("Origem")
+        agg = enrich_clients_df(df_clients_mock, df_mapping_clients_mock )
+
+        agg_expected_csv = """Origem,_grupo
+            _outros,Outros
+            _outros,Outros
+            _outros,Outros
+            facebook,Facebook/Instagram
+            facebook,Facebook/Instagram
+            facebook,Facebook/Instagram
+            fachada da loja,Fachada
+            fachada da loja,Fachada
+            fachada da loja,Fachada
+            google,Google
+            google,Google
+            google,Google
+            indicação de clientes,Indicação Clientes
+            indicação de clientes,Indicação Clientes
+            indicação de clientes,Indicação Clientes
+            indicação de funcionários,Indicação Funcionarios
+            indicação de funcionários,Indicação Funcionarios
+            indicação de funcionários,Indicação Funcionarios
+            indicação de parceiros,Indicação Parceiros
+            indicação de parceiros,Indicação Parceiros
+            indicação de parceiros,Indicação Parceiros
+            instagram/facebook,Facebook/Instagram
+            instagram/facebook,Facebook/Instagram
+            instagram/facebook,Facebook/Instagram
+            internet,Outros
+            internet,Outros
+            internet,Outros
+            panfleto,Campanha
+            panfleto,Campanha
+            panfleto,Campanha
+            pet love,Outros
+            pet love,Outros
+            pet love,Outros
+            plamev,Outros
+            plamev,Outros
+            plamev,Outros
+            plano de saúde,Outros
+            plano de saúde,Outros
+            plano de saúde,Outros
+            revista,Campanha
+            revista,Campanha
+            revista,Campanha
+            vital pet,Outros
+            vital pet,Outros
+            vital pet,Outros
+        """
+
+        agg_expected = pd.read_csv(StringIO(agg_expected_csv))
+        agg_expected["Origem"] = agg_expected["Origem"].str.strip()
+
+        pd.testing.assert_frame_equal(agg, agg_expected)
 
     def test_agg_vendas_clientes(self):
         clients_mock_csv = """Data e hora,Cliente
@@ -224,6 +328,3 @@ class TestDataAnalysisClients(unittest.TestCase):
 
         pd.testing.assert_frame_equal(agg, agg_expected)
 
-#       Still need to work on:
-#
-#       clients_df = enrich_clients_df(clients_df, mapping_clients_df)
