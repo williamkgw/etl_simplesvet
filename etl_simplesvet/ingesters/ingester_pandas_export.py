@@ -46,6 +46,7 @@ class IngesterPandasExport(IngesterPandasXLSX):
         df["Medição"] = NA
         return df
 
+
     def ingest(self):
         df = super() \
             .pass_options(**self._options) \
