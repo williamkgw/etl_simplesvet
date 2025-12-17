@@ -26,7 +26,7 @@ class ExportClientsFrames:
     agg_clientes_total_ativos_df: pd.DataFrame
 
 
-class  StepTransformPandasExport(Step):
+class StepTransformPandasExport(Step):
     def run(self, **kwargs):
         end_date = kwargs["end_date"]
         export_df = kwargs["export_df"]
@@ -58,11 +58,11 @@ class  StepTransformPandasExport(Step):
             export_sales_frames,
             export_clients_frames,
             mapping_item_df,
-            end_date,
-            -1
+            end_date
         )
 
         return {
             **kwargs,
             "df_export": df_export
         }
+

@@ -3,36 +3,36 @@ import pandas as pd
 
 def enrich_sales_df(sales_df, mapping_sales_df):
     mapping_sales_df = mapping_sales_df.copy().rename(columns = {
-            'Categoria': '__categoria',
-            'Pilar':  '__pilar',
-            'Grupo':  '__grupo'
+            "Categoria": "__categoria",
+            "Pilar":  "__pilar",
+            "Grupo":  "__grupo"
         }
     )
-    sales_df = sales_df.join(mapping_sales_df, on = 'Produto/serviço', how = 'left')
-    sales_df[['__categoria', '__pilar', '__grupo']] = sales_df[['__categoria', '__pilar', '__grupo']].fillna('NULL')
+    sales_df = sales_df.join(mapping_sales_df, on = "Produto/serviço", how = "left")
+    sales_df[["__categoria", "__pilar", "__grupo"]] = sales_df[["__categoria", "__pilar", "__grupo"]].fillna("NULL")
 
     # ano e mes
-    sales_df['__ano'] = sales_df['Data e hora'].dt.year
-    sales_df['__mes'] = sales_df['Data e hora'].dt.month
+    sales_df["__ano"] = sales_df["Data e hora"].dt.year
+    sales_df["__mes"] = sales_df["Data e hora"].dt.month
 
     # tickets
-    sales_df['__ticket'] = 1 / sales_df.groupby('Venda')['Venda'].transform('count')
-    sales_df['__ticket_por_pilar'] = 1 / sales_df.groupby(['Venda', '__pilar'], dropna = False)['__pilar'].transform('count')
+    sales_df["__ticket"] = 1 / sales_df.groupby("Venda")["Venda"].transform("count")
+    sales_df["__ticket_por_pilar"] = 1 / sales_df.groupby(["Venda", "__pilar"], dropna = False)["__pilar"].transform("count")
 
     # clientes ativos
-    sales_df['__clientes_ativos'] = 1 / sales_df.groupby([pd.Grouper(key = 'Data e hora', freq = '1ME'), 'Código'], dropna = False)['Código'].transform('count')
-    sales_df['__clientes_ativo_por_pilar'] = 1 / sales_df.groupby([pd.Grouper(key = 'Data e hora', freq = '1ME'), 'Código', '__pilar'], dropna = False)['Código'].transform('count')
+    sales_df["__clientes_ativos"] = 1 / sales_df.groupby([pd.Grouper(key = "Data e hora", freq = "1ME"), "Código"], dropna = False)["Código"].transform("count")
+    sales_df["__clientes_ativo_por_pilar"] = 1 / sales_df.groupby([pd.Grouper(key = "Data e hora", freq = "1ME"), "Código", "__pilar"], dropna = False)["Código"].transform("count")
 
     return sales_df
 
 def get_agg_grupo_df(vendas_agrupado_grupo):
-    agg_grupo_df = vendas_agrupado_grupo[['Bruto', 'Quantidade']] \
-                    .agg('sum') \
-                    .assign(media = lambda df: df['Bruto'] / df['Quantidade']) \
+    agg_grupo_df = vendas_agrupado_grupo[["Bruto", "Quantidade"]] \
+                    .agg("sum") \
+                    .assign(media = lambda df: df["Bruto"] / df["Quantidade"]) \
                     .rename(columns = {
-                        'Bruto': 'Faturamento Bruto',
-                        'Quantidade': 'Quantidade Totalizada',
-                        'media': 'Preço Médio'
+                        "Bruto": "Faturamento Bruto",
+                        "Quantidade": "Quantidade Totalizada",
+                        "media": "Preço Médio"
                         }
                     ) \
                     .unstack(level = [-2, -1]) \
@@ -40,18 +40,18 @@ def get_agg_grupo_df(vendas_agrupado_grupo):
     return agg_grupo_df
 
 def get_agg_pilar_df(vendas_agrupado_pilar):
-    agg_pilar_df = vendas_agrupado_pilar[['Bruto', 'Quantidade', '__ticket_por_pilar', '__clientes_ativo_por_pilar']] \
-                    .agg('sum') \
-                    .assign(media = lambda df: df['Bruto'] / df['Quantidade']) \
-                    .assign(media_ticket = lambda df: df['Bruto'] / df['__ticket_por_pilar']) \
-                    .assign(media_ticket_per_client = lambda df: df['Bruto'] / df['__clientes_ativo_por_pilar']) \
-                    .drop(columns = ['__ticket_por_pilar', '__clientes_ativo_por_pilar']) \
+    agg_pilar_df = vendas_agrupado_pilar[["Bruto", "Quantidade", "__ticket_por_pilar", "__clientes_ativo_por_pilar"]] \
+                    .agg("sum") \
+                    .assign(media = lambda df: df["Bruto"] / df["Quantidade"]) \
+                    .assign(media_ticket = lambda df: df["Bruto"] / df["__ticket_por_pilar"]) \
+                    .assign(media_ticket_per_client = lambda df: df["Bruto"] / df["__clientes_ativo_por_pilar"]) \
+                    .drop(columns = ["__ticket_por_pilar", "__clientes_ativo_por_pilar"]) \
                     .rename(columns = {
-                            'Bruto': 'Faturamento Bruto',
-                            'Quantidade': 'Quantidade Totalizada',
-                            'media': 'Preço Médio',
-                            'media_ticket': 'Tickets Médio',
-                            'media_ticket_per_client': 'Faturamento Médio por Clientes'
+                            "Bruto": "Faturamento Bruto",
+                            "Quantidade": "Quantidade Totalizada",
+                            "media": "Preço Médio",
+                            "media_ticket": "Tickets Médio",
+                            "media_ticket_per_client": "Faturamento Médio por Clientes"
                         }
                     ) \
                     .unstack(level = [-2, -1]) \
@@ -59,13 +59,13 @@ def get_agg_pilar_df(vendas_agrupado_pilar):
     return agg_pilar_df
 
 def get_agg_categoria_df(vendas_agrupado_categoria):
-    agg_categoria_df = vendas_agrupado_categoria[['Bruto', 'Quantidade']] \
-                        .agg('sum') \
-                        .assign(media = lambda df: df['Bruto'] / df['Quantidade']) \
+    agg_categoria_df = vendas_agrupado_categoria[["Bruto", "Quantidade"]] \
+                        .agg("sum") \
+                        .assign(media = lambda df: df["Bruto"] / df["Quantidade"]) \
                         .rename(columns = {
-                            'Bruto': 'Faturamento Bruto',
-                            'Quantidade': 'Quantidade Totalizada',
-                            'media': 'Preço Médio'
+                            "Bruto": "Faturamento Bruto",
+                            "Quantidade": "Quantidade Totalizada",
+                            "media": "Preço Médio"
                             }
                         ) \
                         .unstack(level = -1) \
@@ -74,18 +74,18 @@ def get_agg_categoria_df(vendas_agrupado_categoria):
     return agg_categoria_df
 
 def get_agg_tempo_df(vendas_agrupado_tempo):
-    agg_tempo_df = vendas_agrupado_tempo[['Bruto', 'Quantidade', '__ticket', '__clientes_ativos']] \
-                    .agg('sum') \
-                    .assign(media = lambda df: df['Bruto'] / df['Quantidade']) \
-                    .assign(media_ticket = lambda df: df['Bruto'] / df['__ticket']) \
-                    .assign(media_ticket_per_client = lambda df: df['Bruto'] / df['__clientes_ativos']) \
-                    .drop(columns = ['__ticket', '__clientes_ativos']) \
+    agg_tempo_df = vendas_agrupado_tempo[["Bruto", "Quantidade", "__ticket", "__clientes_ativos"]] \
+                    .agg("sum") \
+                    .assign(media = lambda df: df["Bruto"] / df["Quantidade"]) \
+                    .assign(media_ticket = lambda df: df["Bruto"] / df["__ticket"]) \
+                    .assign(media_ticket_per_client = lambda df: df["Bruto"] / df["__clientes_ativos"]) \
+                    .drop(columns = ["__ticket", "__clientes_ativos"]) \
                     .rename(columns = {
-                            'Bruto': 'Faturamento Bruto',
-                            'Quantidade': 'Quantidade Totalizada',
-                            'media': 'Preço Médio',
-                            'media_ticket': 'Tickets Médio',
-                            'media_ticket_per_client': 'Faturamento Médio por Clientes'
+                            "Bruto": "Faturamento Bruto",
+                            "Quantidade": "Quantidade Totalizada",
+                            "media": "Preço Médio",
+                            "media_ticket": "Tickets Médio",
+                            "media_ticket_per_client": "Faturamento Médio por Clientes"
                         }
                     ) \
                     .fillna(0)
@@ -93,18 +93,18 @@ def get_agg_tempo_df(vendas_agrupado_tempo):
     return agg_tempo_df
 
 def get_exception_df(vendas_agrupado_grupo):
-    qntd_df = vendas_agrupado_grupo['Quantidade'] \
-                    .apply('sum') \
+    qntd_df = vendas_agrupado_grupo["Quantidade"] \
+                    .apply("sum") \
                     .unstack(level = [-2, -1]) \
-                    .dropna(axis = 1, how = 'all')
+                    .dropna(axis = 1, how = "all")
 
     pilar_columns = qntd_df.columns.get_level_values(level = 0)
     grupo_columns = qntd_df.columns.get_level_values(level = 1)
 
-    CIRURGIA = 'Cirurgia'
-    CONSULTA = 'Consulta'
-    EXAMES = 'Exames'
-    DIARIA = 'Diária'
+    CIRURGIA = "Cirurgia"
+    CONSULTA = "Consulta"
+    EXAMES = "Exames"
+    DIARIA = "Diária"
 
     if CIRURGIA in grupo_columns:
         cirurgia_s = qntd_df.xs(CIRURGIA, level = 1, axis = "columns").loc[:, "Cirurgia"]
@@ -128,9 +128,9 @@ def get_exception_df(vendas_agrupado_grupo):
 
     exception_df = pd.DataFrame(
         {
-            'Consultas/Cirurgias': consultas_s/cirurgia_s,
-            'Consultas/Internação': consultas_s/internacao_s,
-            'Exames/Consultas': exames_s/consultas_s
+            "Consultas/Cirurgias": consultas_s/cirurgia_s,
+            "Consultas/Internação": consultas_s/internacao_s,
+            "Exames/Consultas": exames_s/consultas_s
         }
     ) \
     .replace([np.inf, -np.inf, np.nan], 0.0)
@@ -141,10 +141,17 @@ def get_inadimplencia_df(vendas_df, end_date):
     end_date_time_mask = end_date - pd.offsets.MonthBegin()
     begin_date_time_mask = end_date - pd.offsets.DateOffset(months = 11) - 2*pd.offsets.MonthBegin()
 
-    time_mask = (vendas_df['Data e hora'] > begin_date_time_mask) & (vendas_df['Data e hora'] < end_date_time_mask)
-    baixa_mask = vendas_df['Status da venda'] != 'Baixado'
+    time_mask = (vendas_df["Data e hora"] > begin_date_time_mask) & (vendas_df["Data e hora"] < end_date_time_mask)
+    baixa_mask = vendas_df["Status da venda"] != "Baixado"
     mask = time_mask & baixa_mask
 
-    inadimpl_df = vendas_df[mask].groupby(pd.Grouper(key = 'Data e hora', freq = '1ME'))['Bruto'].agg('sum').rolling(window = 12).sum()
-    return inadimpl_df.rename('Inadimplencia do Faturamento Bruto')
+    inadimpl_df = vendas_df[mask] \
+                    .groupby(pd.Grouper(key = "Data e hora", freq = "1ME"))["Bruto"] \
+                    .agg("sum").rolling(window = 12).sum() \
+                    .rename("Inadimplencia do Faturamento Bruto")
+
+    inadimpl_df.index = inadimpl_df.index + pd.offsets.MonthEnd()
+    inadimpl_df.index.freq = "1ME"
+
+    return inadimpl_df
 

@@ -15,19 +15,19 @@ class StepIngestPandasExport(Step):
         export_df = IngesterPandasExport("datasets/import.xlsx").ingest()
         ingester_xlsx = IngesterPandasXLSX(AGG_VENDAS_FILE)
 
-        agg_vendas_grupo_df = ingester_xlsx.pass_options(header = arithmetic_seq_list(3), sheet_name = "grupo").ingest()
-        agg_vendas_pil_df = ingester_xlsx.pass_options(header = arithmetic_seq_list(3), sheet_name = "pilar").ingest()
-        agg_vendas_cat_df = ingester_xlsx.pass_options(header = arithmetic_seq_list(2), sheet_name = "categoria").ingest()
-        agg_vendas_tot_df = ingester_xlsx.pass_options(header = arithmetic_seq_list(1), sheet_name = "total").ingest()
-        agg_inadimplencia_df = ingester_xlsx.pass_options(header = arithmetic_seq_list(1), sheet_name = "inadimplencia").ingest()
-        agg_vendas_exec_df = ingester_xlsx.pass_options(header = arithmetic_seq_list(1), sheet_name = "exception").ingest()
+        agg_vendas_grupo_df = ingester_xlsx.pass_options(index_col = 0, header = arithmetic_seq_list(3), sheet_name = "grupo").ingest()
+        agg_vendas_pil_df = ingester_xlsx.pass_options(index_col = 0, header = arithmetic_seq_list(3), sheet_name = "pilar").ingest()
+        agg_vendas_cat_df = ingester_xlsx.pass_options(index_col = 0, header = arithmetic_seq_list(2), sheet_name = "categoria").ingest()
+        agg_vendas_tot_df = ingester_xlsx.pass_options(index_col = 0, header = arithmetic_seq_list(1), sheet_name = "total").ingest()
+        agg_inadimplencia_df = ingester_xlsx.pass_options(index_col = 0, header = arithmetic_seq_list(1), sheet_name = "inadimplencia").ingest()
+        agg_vendas_exec_df = ingester_xlsx.pass_options(index_col = 0, header = arithmetic_seq_list(1), sheet_name = "exception").ingest()
 
         mapping_item_df = IngesterPandasMappingExport(MAPPING_EXPORT_FILE).ingest()
 
         ingester_xlsx.pass_options(io=AGG_CLIENTES_FILE)
-        agg_clientes_grupo_df = ingester_xlsx.pass_options(header = arithmetic_seq_list(2), sheet_name = "grupo_clientes").ingest()
-        agg_clientes_total_df = ingester_xlsx.pass_options(header = arithmetic_seq_list(1), sheet_name = "grupo_total").ingest()
-        agg_clientes_total_ativos_df = ingester_xlsx.pass_options(header = arithmetic_seq_list(1), sheet_name = "ativos_clientes").ingest()
+        agg_clientes_grupo_df = ingester_xlsx.pass_options(index_col = 0, header = arithmetic_seq_list(2), sheet_name = "grupo_clientes").ingest()
+        agg_clientes_total_df = ingester_xlsx.pass_options(index_col = 0, header = arithmetic_seq_list(1), sheet_name = "grupo_total").ingest()
+        agg_clientes_total_ativos_df = ingester_xlsx.pass_options(index_col = 0, header = arithmetic_seq_list(1), sheet_name = "ativos_clientes").ingest()
 
         return {
             **kwargs,

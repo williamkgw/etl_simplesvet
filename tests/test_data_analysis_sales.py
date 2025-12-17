@@ -726,18 +726,18 @@ class TestDataAnalysisSales(unittest.TestCase):
         s_inadimpl = get_inadimplencia_df(df_sales_mock, end_date)
 
         inadimpl_expected_csv ="""Data e hora,Inadimplencia do Faturamento Bruto
-            2024-01-31 00:00:00,
-            2024-02-29 00:00:00,
-            2024-03-31 00:00:00,
-            2024-04-30 00:00:00,
-            2024-05-31 00:00:00,
-            2024-06-30 00:00:00,
-            2024-07-31 00:00:00,
-            2024-08-31 00:00:00,
-            2024-09-30 00:00:00,
-            2024-10-31 00:00:00,
-            2024-11-30 00:00:00,
-            2024-12-31 00:00:00,419.0
+            2024-02-29,
+            2024-03-31,
+            2024-04-30,
+            2024-05-31,
+            2024-06-30,
+            2024-07-31,
+            2024-08-31,
+            2024-09-30,
+            2024-10-31,
+            2024-11-30,
+            2024-12-31,
+            2025-01-31,419.0
         """
         s_inadimpl_expected = pd.read_csv(StringIO(inadimpl_expected_csv))
         s_inadimpl_expected["Data e hora"] = pd.to_datetime(s_inadimpl_expected["Data e hora"])
