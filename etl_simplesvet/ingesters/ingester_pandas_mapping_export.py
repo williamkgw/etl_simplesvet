@@ -7,7 +7,7 @@ class IngesterPandasMappingExport(IngesterPandasXLSX):
         self._file_name=file_name
 
         MAPPING_COLUMNS = {
-            "ID do Item": str,
+            "ID do Item": int,
             "Mês": str,
             "Ano": str,
             "Item": str,
@@ -16,7 +16,7 @@ class IngesterPandasMappingExport(IngesterPandasXLSX):
             "Grupo": str,
             "Op": str,
             "Op_execao": str,
-            "Multiplicador": str
+            "Multiplicador": int
         }
 
         mapping_columns_keys = list(MAPPING_COLUMNS.keys())
@@ -28,7 +28,7 @@ class IngesterPandasMappingExport(IngesterPandasXLSX):
         }
 
     def ingest(self):
-        df =  super() \
+        df = super() \
             .pass_options(**self._options) \
             ._read()
 
