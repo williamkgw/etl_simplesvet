@@ -43,21 +43,7 @@ def get_date_med_op_df(df):
             .loc[:, date_col:] \
             .rename(columns = {date_col: DateColumns.DEFAULT_DATE})
 
-def med(
-    export_df,
-    export_sales_frames,
-    export_clients_frames,
-    mapping_item_df,
-    end_date
-):
-    export_df = reset_export_df(export_df, end_date)
-
-    cols = ["Op_execao", "Op", "Categoria", "Pilar", "Grupo"]
-
-    mapping_item_df["op"] = mapping_item_df[cols] \
-                            .agg(tuple, axis = "columns") \
-                            .transform(lambda s: tuple(filter(lambda c: c != 'x', s)))
-
+def get_meds_df(export_sales_frames, export_clients_frames):
     agg_dfs = [
         export_sales_frames.agg_vendas_grupo_df,
         export_sales_frames.agg_vendas_pil_df,
@@ -71,24 +57,32 @@ def med(
     ]
     treated_dfs = map(get_date_med_op_df, agg_dfs)
     meds_df = pd.concat(list(treated_dfs))
+    return meds_df
 
+
+def med(export_df, meds_df, mapping_item_df, end_date):
     last_med_df = meds_df[meds_df["Data e hora"] == max(meds_df["Data e hora"])].copy()
     last_med_df["Ano"] = last_med_df["Data e hora"].dt.year
     last_med_df["Mês"] = last_med_df["Data e hora"].dt.month
     last_med_df = last_med_df.drop("Data e hora", axis = "columns")
     last_med_df = last_med_df.drop_duplicates()
 
+    OP_COLUMNS = ["Op_execao", "Op", "Categoria", "Pilar", "Grupo"]
+    mapping_item_df["op"] = mapping_item_df[OP_COLUMNS] \
+                            .agg(tuple, axis = "columns") \
+                            .transform(lambda s: tuple(filter(lambda c: c != 'x', s)))
+
+    export_df = reset_export_df(export_df, end_date)
     export_med_data_df = mapping_item_df \
                         .drop(["Ano", "Mês"], axis = "columns") \
                         .reset_index() \
                         .merge(last_med_df, on = "op") \
-                        .rename(columns = {"med": "Medição"}) \
-                        .loc[:, ["ID do Item", "Ano", "Mês", "Medição"]] \
+                        .loc[:, ["ID do Item", "Ano", "Mês", "med"]] \
                         .set_index("ID do Item")
-
     export_df = export_df \
                 .drop("Medição", axis = "columns") \
                 .merge(export_med_data_df, on = ["ID do Item", "Ano", "Mês"], how = "left") \
+                .rename(columns = {"med": "Medição"}) \
                 .loc[:, export_df.columns]
 
     return export_df
