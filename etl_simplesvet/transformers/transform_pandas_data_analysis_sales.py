@@ -11,10 +11,6 @@ def enrich_sales_df(sales_df, mapping_sales_df):
     sales_df = sales_df.join(mapping_sales_df, on = "Produto/serviço", how = "left")
     sales_df[["__categoria", "__pilar", "__grupo"]] = sales_df[["__categoria", "__pilar", "__grupo"]].fillna("NULL")
 
-    # ano e mes
-    sales_df["__ano"] = sales_df["Data e hora"].dt.year
-    sales_df["__mes"] = sales_df["Data e hora"].dt.month
-
     # tickets
     sales_df["__ticket"] = 1 / sales_df.groupby("Venda")["Venda"].transform("count")
     sales_df["__ticket_por_pilar"] = 1 / sales_df.groupby(["Venda", "__pilar"], dropna = False)["__pilar"].transform("count")
