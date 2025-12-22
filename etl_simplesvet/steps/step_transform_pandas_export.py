@@ -5,6 +5,7 @@ import pandas as pd
 from etl_simplesvet.step import Step
 
 from etl_simplesvet.transformers.transform_pandas_export import (
+    get_meds_df,
     med
 )
 
@@ -53,10 +54,11 @@ class StepTransformPandasExport(Step):
         }
         export_clients_frames = ExportClientsFrames(**export_clients_frames_ctx)
 
+        meds_df = get_meds_df(export_sales_frames, export_clients_frames)
+
         df_export = med(
             export_df,
-            export_sales_frames,
-            export_clients_frames,
+            meds_df,
             mapping_item_df,
             end_date
         )
