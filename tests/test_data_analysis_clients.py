@@ -15,7 +15,7 @@ from etl_simplesvet.transformers.transform_pandas_data_analysis_clients import (
 class TestDataAnalysisClients(unittest.TestCase):
 
     def test_enrich_clients(self):
-        clients_mock_csv = """Origem
+        clients_mock_csv = """TX_ORGM
             _outros
             _outros
             _outros
@@ -64,9 +64,9 @@ class TestDataAnalysisClients(unittest.TestCase):
         """
 
         df_clients_mock = pd.read_csv(StringIO(clients_mock_csv))
-        df_clients_mock["Origem"] = df_clients_mock["Origem"].str.strip()
+        df_clients_mock["TX_ORGM"] = df_clients_mock["TX_ORGM"].str.strip()
 
-        mapping_clients_mock_csv = """Origem,Grupo
+        mapping_clients_mock_csv = """TX_ORGM,TX_GRP
             internet,Outros
             fachada da loja,Fachada
             _outros,Outros
@@ -85,11 +85,11 @@ class TestDataAnalysisClients(unittest.TestCase):
             pet love,Outros
         """
         df_mapping_clients_mock = pd.read_csv(StringIO(mapping_clients_mock_csv))
-        df_mapping_clients_mock["Origem"] = df_mapping_clients_mock["Origem"].str.strip()
-        df_mapping_clients_mock = df_mapping_clients_mock.set_index("Origem")
+        df_mapping_clients_mock["TX_ORGM"] = df_mapping_clients_mock["TX_ORGM"].str.strip()
+        df_mapping_clients_mock = df_mapping_clients_mock.set_index("TX_ORGM")
         agg = enrich_clients_df(df_clients_mock, df_mapping_clients_mock )
 
-        agg_expected_csv = """Origem,_grupo
+        agg_expected_csv = """TX_ORGM,TX_GRP
             _outros,Outros
             _outros,Outros
             _outros,Outros
@@ -138,12 +138,12 @@ class TestDataAnalysisClients(unittest.TestCase):
         """
 
         agg_expected = pd.read_csv(StringIO(agg_expected_csv))
-        agg_expected["Origem"] = agg_expected["Origem"].str.strip()
+        agg_expected["TX_ORGM"] = agg_expected["TX_ORGM"].str.strip()
 
         pd.testing.assert_frame_equal(agg, agg_expected)
 
     def test_agg_vendas_clientes(self):
-        clients_mock_csv = """Data e hora,Cliente
+        clients_mock_csv = """TS_DT_HR_VND,TX_NM_CLI
             2023-01-04 17:36:00,Simone Brust
             2023-01-13 11:00:00,Regina Mendes
             2023-01-31 15:38:00,Juselma Correia
@@ -176,26 +176,26 @@ class TestDataAnalysisClients(unittest.TestCase):
             2023-03-13 09:43:00,Fernando Ferraz
         """
         df_clients_mock = pd.read_csv(StringIO(clients_mock_csv))
-        df_clients_mock["Data e hora"] = pd.to_datetime(df_clients_mock["Data e hora"])
+        df_clients_mock["TS_DT_HR_VND"] = pd.to_datetime(df_clients_mock["TS_DT_HR_VND"])
 
         agg = agg_vendas_clientes(df_clients_mock)
 
-        agg_expected_csv = """Data e hora,Quantidade Totalizada Clientes Ativos
+        agg_expected_csv = """TS_DT_HR_VND,Quantidade Totalizada Clientes Ativos
             2023-01-31,0
             2023-02-28,9
             2023-03-31,19
         """
 
         agg_expected = pd.read_csv(StringIO(agg_expected_csv))
-        agg_expected["Data e hora"] = pd.to_datetime(agg_expected["Data e hora"])
-        agg_expected = agg_expected.set_index("Data e hora")
+        agg_expected["TS_DT_HR_VND"] = pd.to_datetime(agg_expected["TS_DT_HR_VND"])
+        agg_expected = agg_expected.set_index("TS_DT_HR_VND")
         agg_expected.index.freq = "1ME"
         agg_expected = agg_expected["Quantidade Totalizada Clientes Ativos"]
 
         pd.testing.assert_series_equal(agg, agg_expected)
 
     def test_agg_clientes_mapping(self):
-        clients_mock_csv = """Inclusão,Origem,_grupo
+        clients_mock_csv = """TS_DT_INCL,TX_ORGM,TX_GRP
             2023-01-18,fachada da loja,Fachada
             2023-01-27,google,Google
             2023-01-12,indicação de clientes,Indicação Clientes
@@ -238,11 +238,11 @@ class TestDataAnalysisClients(unittest.TestCase):
             2023-04-14,fachada da loja,Fachada
         """
         df_clients_mock = pd.read_csv(StringIO(clients_mock_csv))
-        df_clients_mock["Inclusão"] = pd.to_datetime(df_clients_mock["Inclusão"])
+        df_clients_mock["TS_DT_INCL"] = pd.to_datetime(df_clients_mock["TS_DT_INCL"])
         agg = agg_clientes_mapping(df_clients_mock)
         agg_flattened = agg.unstack(level = -1).reset_index()
 
-        agg_expected_flattened_csv = """level_0,_grupo,Inclusão,0
+        agg_expected_flattened_csv = """level_0,TX_GRP,TS_DT_INCL,0
             Quantidade Totalizada Clientes,Facebook/Instagram,2023-01-31,0
             Quantidade Totalizada Clientes,Facebook/Instagram,2023-02-28,0
             Quantidade Totalizada Clientes,Facebook/Instagram,2023-03-31,1
@@ -275,12 +275,12 @@ class TestDataAnalysisClients(unittest.TestCase):
         agg_expected_flattened = pd.read_csv(StringIO(agg_expected_flattened_csv))
         agg_expected_flattened = agg_expected_flattened.rename(columns={"0": 0})
         agg_expected_flattened["level_0"] = agg_expected_flattened["level_0"].str.strip()
-        agg_expected_flattened["Inclusão"] = pd.to_datetime(agg_expected_flattened["Inclusão"])
+        agg_expected_flattened["TS_DT_INCL"] = pd.to_datetime(agg_expected_flattened["TS_DT_INCL"])
 
         pd.testing.assert_frame_equal(agg_flattened, agg_expected_flattened)
 
     def test_agg_clientes_total(self):
-        clients_mock_csv = """Inclusão,Origem
+        clients_mock_csv = """TS_DT_INCL,TX_ORGM
             2023-02-14,indicação de funcionários
             2023-01-09,google
             2023-03-04,fachada da loja
@@ -313,17 +313,17 @@ class TestDataAnalysisClients(unittest.TestCase):
             2023-01-04,google
         """
         df_clients_mock = pd.read_csv(StringIO(clients_mock_csv))
-        df_clients_mock["Inclusão"] = pd.to_datetime(df_clients_mock["Inclusão"])
+        df_clients_mock["TS_DT_INCL"] = pd.to_datetime(df_clients_mock["TS_DT_INCL"])
         agg = agg_clients_total(df_clients_mock)
 
-        agg_expected_csv = """Inclusão,Quantidade Totalizada Clientes
+        agg_expected_csv = """TS_DT_INCL,Quantidade Totalizada Clientes
             2023-01-31,19
             2023-02-28,4
             2023-03-31,7
         """
         agg_expected = pd.read_csv(StringIO(agg_expected_csv))
-        agg_expected["Inclusão"] = pd.to_datetime(agg_expected["Inclusão"])
-        agg_expected = agg_expected.set_index("Inclusão")
+        agg_expected["TS_DT_INCL"] = pd.to_datetime(agg_expected["TS_DT_INCL"])
+        agg_expected = agg_expected.set_index("TS_DT_INCL")
         agg_expected.index.freq = "1ME"
 
         pd.testing.assert_frame_equal(agg, agg_expected)

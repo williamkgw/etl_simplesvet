@@ -262,7 +262,7 @@ class TestExport(unittest.TestCase):
             31,,,x,x,x,x,Exames/Consultas,1
         """
 
-        meds_mock_csv = """Data e hora,med,op
+        meds_mock_csv = """TS_DT_HR_VND,med,op
             2025-04-30,46.0,"('Consultas/Cirurgias',)"
             2025-03-31,158.0,"('Consultas/Cirurgias',)"
             2025-04-30,59.0,"('Consultas/Internação',)"
@@ -382,7 +382,7 @@ class TestExport(unittest.TestCase):
 
         df_mapping_item_mock = pd.read_csv(StringIO(mapping_item_mock_csv)).set_index("ID do Item")
         df_meds_mock = pd.read_csv(StringIO(meds_mock_csv), converters = {"op": ast.literal_eval})
-        df_meds_mock["Data e hora"] = pd.to_datetime(df_meds_mock["Data e hora"])
+        df_meds_mock["TS_DT_HR_VND"] = pd.to_datetime(df_meds_mock["TS_DT_HR_VND"])
         end_date = datetime(2025, 5, 1, 0, 0)
         df_export_meds = med(df_export_mock, df_meds_mock, df_mapping_item_mock, end_date)
 

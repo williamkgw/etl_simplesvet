@@ -23,9 +23,9 @@ def reset_export_df(export_df, end_date):
 from enum import StrEnum
 
 class DateColumns(StrEnum):
-    SALES_DATE = "Data e hora"
-    CLIENTS_DATE = "Inclusão"
-    DEFAULT_DATE = "Data e hora"
+    SALES_DATE = "TS_DT_HR_VND"
+    CLIENTS_DATE = "TS_DT_INCL"
+    DEFAULT_DATE = "TS_DT_HR_VND"
 
 
 def get_date_med_op_df(df):
@@ -61,10 +61,10 @@ def get_meds_df(export_sales_frames, export_clients_frames):
 
 
 def med(export_df, meds_df, mapping_item_df, end_date):
-    last_med_df = meds_df[meds_df["Data e hora"] == max(meds_df["Data e hora"])].copy()
-    last_med_df["Ano"] = last_med_df["Data e hora"].dt.year
-    last_med_df["Mês"] = last_med_df["Data e hora"].dt.month
-    last_med_df = last_med_df.drop("Data e hora", axis = "columns")
+    last_med_df = meds_df[meds_df["TS_DT_HR_VND"] == max(meds_df["TS_DT_HR_VND"])].copy()
+    last_med_df["Ano"] = last_med_df["TS_DT_HR_VND"].dt.year
+    last_med_df["Mês"] = last_med_df["TS_DT_HR_VND"].dt.month
+    last_med_df = last_med_df.drop("TS_DT_HR_VND", axis = "columns")
     last_med_df = last_med_df.drop_duplicates()
 
     OP_COLUMNS = ["Op_execao", "Op", "Categoria", "Pilar", "Grupo"]

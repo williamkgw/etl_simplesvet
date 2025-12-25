@@ -19,7 +19,7 @@ from etl_simplesvet.transformers.transform_pandas_data_analysis_sales import (
 class TestDataAnalysisSales(unittest.TestCase):
 
     def test_enrich_sales(self):
-        sales_mock_csv = """Data e hora,Venda,Código,Produto/serviço
+        sales_mock_csv = """TS_DT_HR_VND,CD_VND,CD_CLI,TX_PRD_SRV
             2023-09-16 11:42:00,52190,6053.0,sedação até 5 a 10kg
             2025-04-07 14:24:00,63730,6662.0,internamento dia até 10kg
             2024-11-09 10:34:00,61593,4539.0,"sorologia- hemoparasitas quantitativo-pcr (ehrlichia spp, babesia spp, anaplasma spp) cl"
@@ -102,9 +102,9 @@ class TestDataAnalysisSales(unittest.TestCase):
             2023-12-06 15:59:00,55359,4267.0,hydra groomers colonia forever gold 12
         """
         df_sales_mock = pd.read_csv(StringIO(sales_mock_csv))
-        df_sales_mock["Data e hora"] = pd.to_datetime(df_sales_mock["Data e hora"])
+        df_sales_mock["TS_DT_HR_VND"] = pd.to_datetime(df_sales_mock["TS_DT_HR_VND"])
 
-        mapping_sales_mock_csv = '''Produto/serviço,Categoria,Pilar,Grupo
+        mapping_sales_mock_csv = '''TX_PRD_SRV,TX_CAT,TX_PIL,TX_GRP
             internamento dia até 10kg,Clí+,Internação,Diária
             "feline satiety 1,5 kg - un",B&T+P&S,PetShop,Alimentos
             traumeel por ml,Clí+,Clínica,Procedimentos Clínico
@@ -127,11 +127,11 @@ class TestDataAnalysisSales(unittest.TestCase):
             brinq cat guizo penas bulet bom amigo,B&T+P&S,PetShop,Acessórios
         '''
         df_mapping_sales_mock = pd.read_csv(StringIO(mapping_sales_mock_csv), skipinitialspace = True)
-        df_mapping_sales_mock = df_mapping_sales_mock.set_index("Produto/serviço")
+        df_mapping_sales_mock = df_mapping_sales_mock.set_index("TX_PRD_SRV")
 
         df_sales_enrich = enrich_sales_df(df_sales_mock, df_mapping_sales_mock)
 
-        sales_enrich_expected_csv = """Data e hora,Venda,Código,Produto/serviço,__categoria,__pilar,__grupo,__ticket,__ticket_por_pilar,__clientes_ativos,__clientes_ativo_por_pilar
+        sales_enrich_expected_csv = """TS_DT_HR_VND,CD_VND,CD_CLI,TX_PRD_SRV,TX_CAT,TX_PIL,TX_GRP,__ticket,__ticket_por_pilar,__clientes_ativos,__clientes_ativo_por_pilar
             2023-09-16 11:42:00,52190,6053.0,sedação até 5 a 10kg,Clí+,Cirurgia,Procedimentos Cirurgico,1.0,1.0,1.0,1.0
             2025-04-07 14:24:00,63730,6662.0,internamento dia até 10kg,Clí+,Internação,Diária,1.0,1.0,1.0,1.0
             2024-11-09 10:34:00,61593,4539.0,"sorologia- hemoparasitas quantitativo-pcr (ehrlichia spp, babesia spp, anaplasma spp) cl",Clí+,Exames,Laboratório,1.0,1.0,1.0,1.0
@@ -214,13 +214,13 @@ class TestDataAnalysisSales(unittest.TestCase):
             2023-12-06 15:59:00,55359,4267.0,hydra groomers colonia forever gold 12,B&T+P&S,PetShop,Acessórios,1.0,1.0,1.0,1.0
         """
         df_sales_enrich_expected = pd.read_csv(StringIO(sales_enrich_expected_csv))
-        df_sales_enrich_expected["Data e hora"] = pd.to_datetime(df_sales_enrich_expected["Data e hora"])
+        df_sales_enrich_expected["TS_DT_HR_VND"] = pd.to_datetime(df_sales_enrich_expected["TS_DT_HR_VND"])
         df_sales_enrich_expected = df_sales_enrich_expected
 
         pd.testing.assert_frame_equal(df_sales_enrich, df_sales_enrich_expected)
 
     def test_agg_grupo(self):
-        sales_mock_csv = """Data e hora,Quantidade,Bruto,__pilar,__grupo
+        sales_mock_csv = """TS_DT_HR_VND,VL_QTD,VL_BRT,TX_PIL,TX_GRP
             2023-01-19 11:04:00,1.0,55.00,Banho e Tosa,Banho
             2023-02-25 17:52:00,1.0,8.00,Banho e Tosa,Outros BT
             2023-03-24 09:25:00,1.0,30.00,Banho e Tosa,Tosa
@@ -233,13 +233,13 @@ class TestDataAnalysisSales(unittest.TestCase):
             2023-02-21 10:29:00,1.0,180.00,Exames,Imagem
         """
         df_sales_mock = pd.read_csv(StringIO(sales_mock_csv))
-        df_sales_mock["Data e hora"] = pd.to_datetime(df_sales_mock["Data e hora"])
-        grouped_sales_mock = df_sales_mock.groupby([pd.Grouper(key = "Data e hora", freq = '1ME'), "__pilar", "__grupo"])
+        df_sales_mock["TS_DT_HR_VND"] = pd.to_datetime(df_sales_mock["TS_DT_HR_VND"])
+        grouped_sales_mock = df_sales_mock.groupby([pd.Grouper(key = "TS_DT_HR_VND", freq = "1ME"), "TX_PIL", "TX_GRP"])
 
         agg_grupo_df = get_agg_grupo_df(grouped_sales_mock)
         agg_grupo_flattened_df = agg_grupo_df.unstack(level = -1).reset_index()
 
-        agg_grupo_expected_csv = """level_0,__pilar,__grupo,Data e hora,0
+        agg_grupo_expected_csv = """level_0,TX_PIL,TX_GRP,TS_DT_HR_VND,0
             Faturamento Bruto,Banho e Tosa,Banho,2023-01-31,55.0
             Faturamento Bruto,Banho e Tosa,Banho,2023-02-28,0.0
             Faturamento Bruto,Banho e Tosa,Banho,2023-03-31,0.0
@@ -332,13 +332,13 @@ class TestDataAnalysisSales(unittest.TestCase):
             Preço Médio,Clínica,Consulta,2023-03-31,70.01
         """
         agg_grupo_flattened_expected_df = pd.read_csv(StringIO(agg_grupo_expected_csv))
-        agg_grupo_flattened_expected_df = agg_grupo_flattened_expected_df.rename(columns={'0': 0})
+        agg_grupo_flattened_expected_df = agg_grupo_flattened_expected_df.rename(columns={"0": 0})
         agg_grupo_flattened_expected_df["level_0"] = agg_grupo_flattened_expected_df["level_0"].str.strip()
-        agg_grupo_flattened_expected_df["Data e hora"] = pd.to_datetime(agg_grupo_flattened_expected_df["Data e hora"])
+        agg_grupo_flattened_expected_df["TS_DT_HR_VND"] = pd.to_datetime(agg_grupo_flattened_expected_df["TS_DT_HR_VND"])
         pd.testing.assert_frame_equal(agg_grupo_flattened_df, agg_grupo_flattened_expected_df)
 
     def test_agg_pilar(self):
-        sales_mock_csv = """Data e hora,Bruto,Quantidade,__categoria,__pilar,__ticket_por_pilar,__clientes_ativo_por_pilar
+        sales_mock_csv = """TS_DT_HR_VND,VL_BRT,VL_QTD,TX_CAT,TX_PIL,__ticket_por_pilar,__clientes_ativo_por_pilar
             2023-01-26 12:26:00,55.0,1.0,B&T+P&S,Banho e Tosa,0.5,0.25
             2023-01-11 13:57:00,5.0,1.0,B&T+P&S,PetShop,0.5,0.5
             2023-01-27 14:03:00,400.0,1.0,Clí+,Cirurgia,0.5,0.5
@@ -360,13 +360,13 @@ class TestDataAnalysisSales(unittest.TestCase):
             2023-03-04 08:26:00,140.0,1.0,Clí+,Exames,0.16666666666666666,0.09090909090909091
         """
         df_sales_mock = pd.read_csv(StringIO(sales_mock_csv))
-        df_sales_mock["Data e hora"] = pd.to_datetime(df_sales_mock["Data e hora"])
-        sales_mock_groupedby_pilar = df_sales_mock.groupby([pd.Grouper(key = 'Data e hora', freq = '1ME'), '__categoria' ,'__pilar'], dropna = False)
+        df_sales_mock["TS_DT_HR_VND"] = pd.to_datetime(df_sales_mock["TS_DT_HR_VND"])
+        sales_mock_groupedby_pilar = df_sales_mock.groupby([pd.Grouper(key = "TS_DT_HR_VND", freq = "1ME"), "TX_CAT" ,"TX_PIL"], dropna = False)
 
         agg_mock_pilar = get_agg_pilar_df(sales_mock_groupedby_pilar)
         agg_mock_pilar_flattened = agg_mock_pilar.unstack(level = -1).reset_index()
 
-        agg_pilar_flattened_expected_csv = """level_0,__categoria,__pilar,Data e hora,0
+        agg_pilar_flattened_expected_csv = """level_0,TX_CAT,TX_PIL,TS_DT_HR_VND,0
             Faturamento Bruto,B&T+P&S,Banho e Tosa,2023-01-31,55.0
             Faturamento Bruto,B&T+P&S,Banho e Tosa,2023-02-28,78.0
             Faturamento Bruto,B&T+P&S,Banho e Tosa,2023-03-31,55.0
@@ -474,14 +474,14 @@ class TestDataAnalysisSales(unittest.TestCase):
             Faturamento Médio por Clientes,,,2023-03-31,0.0
         """
         agg_pilar_flattened_expected = pd.read_csv(StringIO(agg_pilar_flattened_expected_csv))
-        agg_pilar_flattened_expected = agg_pilar_flattened_expected.rename(columns={'0': 0})
+        agg_pilar_flattened_expected = agg_pilar_flattened_expected.rename(columns={"0": 0})
         agg_pilar_flattened_expected["level_0"] = agg_pilar_flattened_expected["level_0"].str.strip()
-        agg_pilar_flattened_expected["Data e hora"] = pd.to_datetime(agg_pilar_flattened_expected["Data e hora"])
+        agg_pilar_flattened_expected["TS_DT_HR_VND"] = pd.to_datetime(agg_pilar_flattened_expected["TS_DT_HR_VND"])
 
         pd.testing.assert_frame_equal(agg_mock_pilar_flattened ,agg_pilar_flattened_expected)
 
     def test_agg_categoria(self):
-        sales_mock_csv = """Data e hora,Bruto,Quantidade,__categoria
+        sales_mock_csv = """TS_DT_HR_VND,VL_BRT,VL_QTD,TX_CAT
             2023-01-18 08:16:00,68.9,1.0,B&T+P&S
             2023-01-27 10:23:00,130.0,1.0,Clí+
             2023-01-04 18:21:00,276.0,1.0,NULL
@@ -504,12 +504,12 @@ class TestDataAnalysisSales(unittest.TestCase):
             2023-07-17 18:09:00,70.01,1.0,Clí+
         """
         df_sales_mock = pd.read_csv(StringIO(sales_mock_csv))
-        df_sales_mock["Data e hora"] = pd.to_datetime(df_sales_mock["Data e hora"])
-        sales_mock_groupedby_categoria = df_sales_mock.groupby([pd.Grouper(key = 'Data e hora', freq = '1ME'), '__categoria'], dropna = False)
+        df_sales_mock["TS_DT_HR_VND"] = pd.to_datetime(df_sales_mock["TS_DT_HR_VND"])
+        sales_mock_groupedby_categoria = df_sales_mock.groupby([pd.Grouper(key = "TS_DT_HR_VND", freq = "1ME"), "TX_CAT"], dropna = False)
         agg_categoria_mock = get_agg_categoria_df(sales_mock_groupedby_categoria)
         agg_categoria_mock_flattened = agg_categoria_mock.unstack(level = -1).reset_index()
 
-        agg_categoria_mock_flattened_expected_csv = """level_0,__categoria,Data e hora,0
+        agg_categoria_mock_flattened_expected_csv = """level_0,TX_CAT,TS_DT_HR_VND,0
             Faturamento Bruto,B&T+P&S,2023-01-31,68.9
             Faturamento Bruto,B&T+P&S,2023-02-28,15.0
             Faturamento Bruto,B&T+P&S,2023-03-31,55.0
@@ -577,12 +577,12 @@ class TestDataAnalysisSales(unittest.TestCase):
         agg_categoria_mock_flattened_expected = pd.read_csv(StringIO(agg_categoria_mock_flattened_expected_csv))
         agg_categoria_mock_flattened_expected = agg_categoria_mock_flattened_expected.rename(columns={"0": 0})
         agg_categoria_mock_flattened_expected["level_0"] = agg_categoria_mock_flattened_expected["level_0"].str.strip()
-        agg_categoria_mock_flattened_expected["Data e hora"] = pd.to_datetime(agg_categoria_mock_flattened_expected["Data e hora"])
+        agg_categoria_mock_flattened_expected["TS_DT_HR_VND"] = pd.to_datetime(agg_categoria_mock_flattened_expected["TS_DT_HR_VND"])
 
         pd.testing.assert_frame_equal(agg_categoria_mock_flattened, agg_categoria_mock_flattened_expected)
 
     def test_agg_tempo(self):
-        sales_mock_csv = """Data e hora,Bruto,Quantidade,__categoria,__pilar,__ticket,__clientes_ativos
+        sales_mock_csv = """TS_DT_HR_VND,VL_BRT,VL_QTD,TX_CAT,TX_PIL,__ticket,__clientes_ativos
             2023-01-11 11:43:00,5.9,1.0,B&T+P&S,PetShop,0.16666666666666666,0.1
             2023-01-18 18:18:00,14.9,1.0,B&T+P&S,PetShop,1.0,0.5
             2023-01-04 09:47:00,55.0,1.0,B&T+P&S,Banho e Tosa,0.25,0.14285714285714285
@@ -615,28 +615,28 @@ class TestDataAnalysisSales(unittest.TestCase):
             2023-03-04 09:17:00,25.0,1.0,Clí+,Clínica,0.1111111111111111,0.1
         """
         df_sales_mock = pd.read_csv(StringIO(sales_mock_csv))
-        df_sales_mock["Data e hora"] = pd.to_datetime(df_sales_mock["Data e hora"])
+        df_sales_mock["TS_DT_HR_VND"] = pd.to_datetime(df_sales_mock["TS_DT_HR_VND"])
 
         sales_mock_groupedby_tempo = df_sales_mock \
-                               .dropna(subset = ['__categoria', '__pilar'], how = "all") \
-                               .groupby([pd.Grouper(key = 'Data e hora', freq = '1ME')])
+                               .dropna(subset = ["TX_CAT", "TX_PIL"], how = "all") \
+                               .groupby([pd.Grouper(key = "TS_DT_HR_VND", freq = "1ME")])
 
         agg_tempo_mock = get_agg_tempo_df(sales_mock_groupedby_tempo)
-        agg_tempo_mock_expected_csv = """Data e hora,Faturamento Bruto,Quantidade Totalizada,Preço Médio,Tickets Médio,Faturamento Médio por Clientes
+        agg_tempo_mock_expected_csv = """TS_DT_HR_VND,Faturamento Bruto,Quantidade Totalizada,Preço Médio,Tickets Médio,Faturamento Médio por Clientes
             2023-01-31,1285.71,10.0,128.571,288.923595505618,427.21376582278486
             2023-02-28,521.6,10.0,52.160000000000004,84.91162790697676,144.28452250274427
             2023-03-31,841.3,11.0,76.48181818181818,192.41931385006353,356.9643201542912
         """
 
         agg_tempo_mock_expected = pd.read_csv(StringIO(agg_tempo_mock_expected_csv))
-        agg_tempo_mock_expected["Data e hora"] = pd.to_datetime(agg_tempo_mock_expected["Data e hora"])
-        agg_tempo_mock_expected = agg_tempo_mock_expected.set_index("Data e hora")
+        agg_tempo_mock_expected["TS_DT_HR_VND"] = pd.to_datetime(agg_tempo_mock_expected["TS_DT_HR_VND"])
+        agg_tempo_mock_expected = agg_tempo_mock_expected.set_index("TS_DT_HR_VND")
         agg_tempo_mock_expected.index = agg_tempo_mock_expected.index.to_period("M").to_timestamp("M")
 
         pd.testing.assert_frame_equal(agg_tempo_mock, agg_tempo_mock_expected)
 
     def test_exception(self):
-        sales_mock_csv = """Data e hora,Quantidade,Bruto,__pilar,__grupo
+        sales_mock_csv = """TS_DT_HR_VND,VL_QTD,VL_BRT,TX_PIL,TX_GRP
             2023-01-21 10:16:00,1.0,55.0,Banho e Tosa,Banho
             2023-01-16 11:32:00,1.0,8.0,Banho e Tosa,Outros BT
             2023-01-17 17:07:00,1.0,35.0,Banho e Tosa,Tosa
@@ -690,24 +690,24 @@ class TestDataAnalysisSales(unittest.TestCase):
             2023-03-16 09:25:00,2.0,82.6,PetShop,Farmácia
         """
         df_sales_mock = pd.read_csv(StringIO(sales_mock_csv))
-        df_sales_mock["Data e hora"] = pd.to_datetime(df_sales_mock["Data e hora"])
-        grouped_sales_mock = df_sales_mock.groupby([pd.Grouper(key = "Data e hora", freq = '1ME'), "__pilar", "__grupo"])
+        df_sales_mock["TS_DT_HR_VND"] = pd.to_datetime(df_sales_mock["TS_DT_HR_VND"])
+        grouped_sales_mock = df_sales_mock.groupby([pd.Grouper(key = "TS_DT_HR_VND", freq = "1ME"), "TX_PIL", "TX_GRP"])
 
         df_exception = get_exception_df(grouped_sales_mock)
-        exception_expected_csv = """Data e hora,Consultas/Cirurgias,Consultas/Internação,Exames/Consultas
+        exception_expected_csv = """TS_DT_HR_VND,Consultas/Cirurgias,Consultas/Internação,Exames/Consultas
             2023-01-31,1.0,1.0,2.0
             2023-02-28,1.0,1.0,2.0
             2023-03-31,1.0,1.0,2.0
         """
         df_exception_expected = pd.read_csv(StringIO(exception_expected_csv))
-        df_exception_expected = df_exception_expected.set_index("Data e hora")
+        df_exception_expected = df_exception_expected.set_index("TS_DT_HR_VND")
         df_exception_expected.index = pd.to_datetime(df_exception_expected.index)
         df_exception_expected.index.freq = "ME"
 
         pd.testing.assert_frame_equal(df_exception, df_exception_expected)
 
     def test_inadimplencia(self):
-        sales_mock_csv = """Data e hora,Status da venda,Bruto
+        sales_mock_csv = """TS_DT_HR_VND,IN_STS_VND,VL_BRT
             2024-05-12 10:27:00,Baixado,400.0
             2024-05-12 10:27:00,Baixado,400.0
             2024-05-12 10:27:00,Baixado,600.0
@@ -720,11 +720,11 @@ class TestDataAnalysisSales(unittest.TestCase):
             2025-01-14 08:35:00,Em atendimento,220.0
         """
         df_sales_mock = pd.read_csv(StringIO(sales_mock_csv))
-        df_sales_mock["Data e hora"] = pd.to_datetime(df_sales_mock["Data e hora"])
+        df_sales_mock["TS_DT_HR_VND"] = pd.to_datetime(df_sales_mock["TS_DT_HR_VND"])
         end_date = datetime(2025, 2, 1, 0, 0)
         s_inadimpl = get_inadimplencia_df(df_sales_mock, end_date)
 
-        inadimpl_expected_csv ="""Data e hora,Inadimplencia do Faturamento Bruto
+        inadimpl_expected_csv ="""TS_DT_HR_VND,Inadimplencia do Faturamento Bruto
             2024-02-29,
             2024-03-31,
             2024-04-30,
@@ -739,8 +739,8 @@ class TestDataAnalysisSales(unittest.TestCase):
             2025-01-31,419.0
         """
         s_inadimpl_expected = pd.read_csv(StringIO(inadimpl_expected_csv))
-        s_inadimpl_expected["Data e hora"] = pd.to_datetime(s_inadimpl_expected["Data e hora"])
-        s_inadimpl_expected = s_inadimpl_expected.set_index("Data e hora")["Inadimplencia do Faturamento Bruto"]
+        s_inadimpl_expected["TS_DT_HR_VND"] = pd.to_datetime(s_inadimpl_expected["TS_DT_HR_VND"])
+        s_inadimpl_expected = s_inadimpl_expected.set_index("TS_DT_HR_VND")["Inadimplencia do Faturamento Bruto"]
         s_inadimpl_expected.index = s_inadimpl_expected.index.to_period("M").to_timestamp("M")
 
         pd.testing.assert_series_equal(s_inadimpl, s_inadimpl_expected)

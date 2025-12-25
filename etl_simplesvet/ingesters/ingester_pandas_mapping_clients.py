@@ -20,16 +20,17 @@ class IngesterPandasMappingClients(IngesterPandasXLSX):
             "dtype": MAPPING_COLUMNS
         }
 
-    def _treat_mapping_clients(self, mapping_clients_df):
-        # removing empty rows
-        missing_mapping_clients_df = mapping_clients_df[mapping_clients_df.isna().all(axis=1)]
-        mapping_clients_df = mapping_clients_df.dropna(how = 'all', axis = 0)
+    def _rename_columns(self, df):
+        RENAME_MAP = {
+            "Origem": "TX_ORGM",
+            "Grupo": "TX_GRP"
+        }
 
-        # configuring the dataframes to catch case sensitive
+        return df.rename(columns = RENAME_MAP)
+
+    def _treat_frame(self, mapping_clients_df):
+        mapping_clients_df = mapping_clients_df.dropna(how = 'all', axis = "rows")
         mapping_clients_df.index = mapping_clients_df.index.str.lower()
-
-        # removing duplicated index
-        mapping_clientes_duplicated_df = mapping_clients_df[mapping_clients_df.index.duplicated(keep = False)]
         mapping_clients_df = mapping_clients_df[~mapping_clients_df.index.duplicated(keep='last')]
 
         return mapping_clients_df
@@ -38,6 +39,6 @@ class IngesterPandasMappingClients(IngesterPandasXLSX):
         df = super() \
             .pass_options(**self._options) \
             ._read() \
-            .pipe(self._treat_mapping_clients)
+            .pipe(self._treat_frame)
 
         return df

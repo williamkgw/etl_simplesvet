@@ -41,8 +41,6 @@ class IngesterPandasExport(IngesterPandasXLSX):
         return necessary_cols
 
     def _treat_frame(self, df):
-        df = df.copy()
-
         df["Medição"] = NA
         return df
 
