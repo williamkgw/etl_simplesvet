@@ -4,22 +4,6 @@ import numpy as np
 from etl_simplesvet.ingesters.ingester_pandas_mapping_export import IngesterPandasMappingExport
 from etl_simplesvet.ingesters.ingester_pandas_export import IngesterPandasExport
 
-def reset_export_df(export_df, end_date):
-    export_df = export_df.copy()
-    export_df.loc[:, "Mês"] = end_date.month - 1
-    export_df.loc[:, "Ano"] = end_date.year
-    cols_to_reset = (
-        "Medição",
-        "Fx Verde Inf/Previsto",
-        "Fx Verde Sup",
-        "Fx Vermelha Inf",
-        "Fx Vermelha Sup",
-        "Fx Cliente Inf",
-        "Fx Cliente Sup"
-    )
-    export_df.loc[:, cols_to_reset] = np.nan
-    return export_df
-
 from enum import StrEnum
 
 class DateColumns(StrEnum):
@@ -29,7 +13,7 @@ class DateColumns(StrEnum):
 
 
 def get_date_med_op_df(df):
-    df_flat = df.unstack().reset_index().rename(columns = {0: "med"})
+    df_flat = df.unstack().reset_index().rename(columns = {0: "VL_MED"})
 
     if DateColumns.SALES_DATE in df_flat.columns:
         date_col = DateColumns.SALES_DATE
@@ -39,7 +23,7 @@ def get_date_med_op_df(df):
         date_col = DateColumns.DEFAULT_DATE
 
     return df_flat \
-            .assign(op = lambda df: df.loc[:, :date_col].iloc[:, :-1].agg(tuple, axis = "columns")) \
+            .assign(TX_OPS = lambda df: df.loc[:, :date_col].iloc[:, :-1].agg(tuple, axis = "columns")) \
             .loc[:, date_col:] \
             .rename(columns = {date_col: DateColumns.DEFAULT_DATE})
 
@@ -59,30 +43,27 @@ def get_meds_df(export_sales_frames, export_clients_frames):
     meds_df = pd.concat(list(treated_dfs))
     return meds_df
 
-
 def med(export_df, meds_df, mapping_item_df, end_date):
     last_med_df = meds_df[meds_df["TS_DT_HR_VND"] == max(meds_df["TS_DT_HR_VND"])].copy()
-    last_med_df["Ano"] = last_med_df["TS_DT_HR_VND"].dt.year
-    last_med_df["Mês"] = last_med_df["TS_DT_HR_VND"].dt.month
-    last_med_df = last_med_df.drop("TS_DT_HR_VND", axis = "columns")
     last_med_df = last_med_df.drop_duplicates()
 
-    OP_COLUMNS = ["Op_execao", "Op", "Categoria", "Pilar", "Grupo"]
-    mapping_item_df["op"] = mapping_item_df[OP_COLUMNS] \
+    OP_COLUMNS = ["TX_OP_EXCE", "TX_OP", "TX_CAT", "TX_PIL", "TX_GRP"]
+    mapping_item_df["TX_OPS"] = mapping_item_df[OP_COLUMNS] \
                             .agg(tuple, axis = "columns") \
                             .transform(lambda s: tuple(filter(lambda c: c != 'x', s)))
 
-    export_df = reset_export_df(export_df, end_date)
     export_med_data_df = mapping_item_df \
-                        .drop(["Ano", "Mês"], axis = "columns") \
                         .reset_index() \
-                        .merge(last_med_df, on = "op") \
-                        .loc[:, ["ID do Item", "Ano", "Mês", "med"]] \
-                        .set_index("ID do Item")
+                        .merge(last_med_df, on = "TX_OPS")
+
+    export_med_data_df["VL_ANO"] = export_med_data_df["TS_DT_HR_VND"].dt.year
+    export_med_data_df["VL_MES"] = export_med_data_df["TS_DT_HR_VND"].dt.month
+
     export_df = export_df \
-                .drop("Medição", axis = "columns") \
-                .merge(export_med_data_df, on = ["ID do Item", "Ano", "Mês"], how = "left") \
-                .rename(columns = {"med": "Medição"}) \
+                .reset_index() \
+                .drop("VL_MED", axis = "columns") \
+                .merge(export_med_data_df, on = ["CD_ID_ITEM", "VL_ANO", "VL_MES"], how = "left") \
+                .set_index("CD_ID_ITEM") \
                 .loc[:, export_df.columns]
 
     return export_df
