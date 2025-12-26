@@ -1,33 +1,46 @@
-from etl_simplesvet.ingesters.ingester_pandas_export import IngesterPandasExport
-from etl_simplesvet.ingesters.ingester_pandas_mapping_export import IngesterPandasMappingExport
-from etl_simplesvet.ingesters.ingester_pandas_xlsx import IngesterPandasXLSX
+import pandas as pd
+from etl_simplesvet.ingesters.ingester_pandas_sql import IngesterPandasSQL
 
 from etl_simplesvet.step import Step
 
 class StepIngestPandasExport(Step):
     def run(self, **kwargs):
-        AGG_VENDAS_FILE = "datasets/output/test_agg_1.xlsx"
-        AGG_CLIENTES_FILE = "datasets/output/test_agg_clientes_1.xlsx"
-        MAPPING_EXPORT_FILE = "datasets/mapping_item.xlsx"
+        end_date = kwargs["end_date"]
 
-        arithmetic_seq_list = lambda i : list(range(i))
+        export_template_query = """
+            SELECT *
+            FROM EXPT_TMPL
+            WHERE TX_COMP = 'Empresa'
+        """
+        export_df = IngesterPandasSQL(export_template_query).ingest()
+        export_df = export_df \
+                    .set_index("CD_ID_ITEM") \
+                    .drop("TX_COMP", axis = "columns")
 
-        export_df = IngesterPandasExport("datasets/import.xlsx").ingest()
-        ingester_xlsx = IngesterPandasXLSX(AGG_VENDAS_FILE)
+        export_df["VL_MES"] = end_date.month - 1
+        export_df["VL_ANO"] = end_date.year
 
-        agg_vendas_grupo_df = ingester_xlsx.pass_options(index_col = 0, header = arithmetic_seq_list(3), sheet_name = "grupo").ingest()
-        agg_vendas_pil_df = ingester_xlsx.pass_options(index_col = 0, header = arithmetic_seq_list(3), sheet_name = "pilar").ingest()
-        agg_vendas_cat_df = ingester_xlsx.pass_options(index_col = 0, header = arithmetic_seq_list(2), sheet_name = "categoria").ingest()
-        agg_vendas_tot_df = ingester_xlsx.pass_options(index_col = 0, header = arithmetic_seq_list(1), sheet_name = "total").ingest()
-        agg_inadimplencia_df = ingester_xlsx.pass_options(index_col = 0, header = arithmetic_seq_list(1), sheet_name = "inadimplencia").ingest()
-        agg_vendas_exec_df = ingester_xlsx.pass_options(index_col = 0, header = arithmetic_seq_list(1), sheet_name = "exception").ingest()
+        agg_vendas_grupo_df = kwargs["agg_grupo_df"]
+        agg_vendas_pil_df = kwargs["agg_pilar_df"]
+        agg_vendas_cat_df = kwargs["agg_categoria_df"]
+        agg_vendas_tot_df = kwargs["agg_tempo_df"]
+        agg_inadimplencia_df = pd.DataFrame(kwargs["inadimplencia"])
+        agg_vendas_exec_df = kwargs["agg_exception_df"]
 
-        mapping_item_df = IngesterPandasMappingExport(MAPPING_EXPORT_FILE).ingest()
+        mapping_item_query = """
+            SELECT *
+            FROM MAP_ITEM
+            WHERE TX_COMP = 'Empresa'
+        """
 
-        ingester_xlsx.pass_options(io=AGG_CLIENTES_FILE)
-        agg_clientes_grupo_df = ingester_xlsx.pass_options(index_col = 0, header = arithmetic_seq_list(2), sheet_name = "grupo_clientes").ingest()
-        agg_clientes_total_df = ingester_xlsx.pass_options(index_col = 0, header = arithmetic_seq_list(1), sheet_name = "grupo_total").ingest()
-        agg_clientes_total_ativos_df = ingester_xlsx.pass_options(index_col = 0, header = arithmetic_seq_list(1), sheet_name = "ativos_clientes").ingest()
+        mapping_item_df = IngesterPandasSQL(mapping_item_query).ingest()
+        mapping_item_df = mapping_item_df \
+                            .set_index("CD_ID_ITEM") \
+                            .drop("TX_COMP", axis = "columns")
+
+        agg_clientes_grupo_df = kwargs["agg_clientes"]
+        agg_clientes_total_df = kwargs["agg_clientes_total"]
+        agg_clientes_total_ativos_df = pd.DataFrame(kwargs["agg_v_clientes"])
 
         return {
             **kwargs,

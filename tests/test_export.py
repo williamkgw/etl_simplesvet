@@ -10,259 +10,259 @@ from etl_simplesvet.transformers.transform_pandas_export import med
 class TestExport(unittest.TestCase):
 
     def test_med_ref(self):
-        export_mock_csv = """ID do Item,Mês,Ano,Medição
-            1646467,7,2024,
-            1646468,7,2024,
-            1646469,7,2024,
-            1646470,7,2024,
-            1646471,7,2024,
-            1646472,7,2024,
-            1646473,7,2024,
-            1646474,7,2024,
-            1646475,7,2024,
-            1646476,7,2024,
-            1646477,7,2024,
-            1646478,7,2024,
-            1646480,7,2024,
-            1646481,7,2024,
-            1646482,7,2024,
-            1646483,7,2024,
-            1646484,7,2024,
-            1646485,7,2024,
-            1646486,7,2024,
-            1646487,7,2024,
-            1646488,7,2024,
-            1646489,7,2024,
-            1646490,7,2024,
-            1646491,7,2024,
-            1646492,7,2024,
-            1646493,7,2024,
-            1646494,7,2024,
-            1646496,7,2024,
-            1646497,7,2024,
-            1646498,7,2024,
-            1646499,7,2024,
-            1646500,7,2024,
-            1646501,7,2024,
-            1646502,7,2024,
-            1646503,7,2024,
-            1646504,7,2024,
-            1646505,7,2024,
-            1646652,7,2024,
-            1646506,7,2024,
-            1646509,7,2024,
-            1646510,7,2024,
-            1646511,7,2024,
-            1646512,7,2024,
-            1646513,7,2024,
-            1646514,7,2024,
-            1646515,7,2024,
-            1646516,7,2024,
-            1646517,7,2024,
-            1646518,7,2024,
-            1646519,7,2024,
-            1646520,7,2024,
-            1646521,7,2024,
-            1646522,7,2024,
-            1646523,7,2024,
-            1646525,7,2024,
-            1646526,7,2024,
-            1646527,7,2024,
-            1646528,7,2024,
-            1646529,7,2024,
-            1646530,7,2024,
-            1646531,7,2024,
-            1646532,7,2024,
-            1646654,7,2024,
-            1646533,7,2024,
-            1646534,7,2024,
-            1646535,7,2024,
-            1646536,7,2024,
-            1646537,7,2024,
-            1646538,7,2024,
-            1646539,7,2024,
-            1646540,7,2024,
-            1646541,7,2024,
-            1646542,7,2024,
-            1646543,7,2024,
-            1646544,7,2024,
-            1646545,7,2024,
-            1646546,7,2024,
-            1646547,7,2024,
-            1646548,7,2024,
-            1646550,7,2024,
-            1646551,7,2024,
-            1646552,7,2024,
-            1646553,7,2024,
-            1646554,7,2024,
-            1646653,7,2024,
-            1646555,7,2024,
-            1646556,7,2024,
-            1646557,7,2024,
-            1646558,7,2024,
-            1646573,7,2024,
-            1646479,7,2024,
-            1646507,7,2024,
-            1646508,7,2024,
-            1646559,7,2024,
-            1646560,7,2024,
-            1646561,7,2024,
-            1646562,7,2024,
-            1646563,7,2024,
-            1646564,7,2024,
-            1646565,7,2024,
-            1646566,7,2024,
-            1646567,7,2024,
-            1646568,7,2024,
-            1646569,7,2024,
-            1646570,7,2024,
-            1646571,7,2024,
-            1646572,7,2024,
+        export_mock_csv = """CD_ID_ITEM,VL_MES,VL_ANO,VL_MED,TX_FX_VERD_INF_PREV,TX_FX_VERD_SUP,TX_FX_VERM_INF,TX_FX_VERM_SUP,TX_FX_CLNT_INF,TX_FX_CLNT_SUP,TX_ITEM,TX_IND,TX_USUA,TX_TIPO,TX_AUX,TX_TOTTX_IN_MED,TX_CLDR
+            1646467,4,2025,,,,,,,,
+            1646468,4,2025,,,,,,,,
+            1646469,4,2025,,,,,,,,
+            1646470,4,2025,,,,,,,,
+            1646471,4,2025,,,,,,,,
+            1646472,4,2025,,,,,,,,
+            1646473,4,2025,,,,,,,,
+            1646474,4,2025,,,,,,,,
+            1646475,4,2025,,,,,,,,
+            1646476,4,2025,,,,,,,,
+            1646477,4,2025,,,,,,,,
+            1646478,4,2025,,,,,,,,
+            1646480,4,2025,,,,,,,,
+            1646481,4,2025,,,,,,,,
+            1646482,4,2025,,,,,,,,
+            1646483,4,2025,,,,,,,,
+            1646484,4,2025,,,,,,,,
+            1646485,4,2025,,,,,,,,
+            1646486,4,2025,,,,,,,,
+            1646487,4,2025,,,,,,,,
+            1646488,4,2025,,,,,,,,
+            1646489,4,2025,,,,,,,,
+            1646490,4,2025,,,,,,,,
+            1646491,4,2025,,,,,,,,
+            1646492,4,2025,,,,,,,,
+            1646493,4,2025,,,,,,,,
+            1646494,4,2025,,,,,,,,
+            1646496,4,2025,,,,,,,,
+            1646497,4,2025,,,,,,,,
+            1646498,4,2025,,,,,,,,
+            1646499,4,2025,,,,,,,,
+            1646500,4,2025,,,,,,,,
+            1646501,4,2025,,,,,,,,
+            1646502,4,2025,,,,,,,,
+            1646503,4,2025,,,,,,,,
+            1646504,4,2025,,,,,,,,
+            1646505,4,2025,,,,,,,,
+            1646652,4,2025,,,,,,,,
+            1646506,4,2025,,,,,,,,
+            1646509,4,2025,,,,,,,,
+            1646510,4,2025,,,,,,,,
+            1646511,4,2025,,,,,,,,
+            1646512,4,2025,,,,,,,,
+            1646513,4,2025,,,,,,,,
+            1646514,4,2025,,,,,,,,
+            1646515,4,2025,,,,,,,,
+            1646516,4,2025,,,,,,,,
+            1646517,4,2025,,,,,,,,
+            1646518,4,2025,,,,,,,,
+            1646519,4,2025,,,,,,,,
+            1646520,4,2025,,,,,,,,
+            1646521,4,2025,,,,,,,,
+            1646522,4,2025,,,,,,,,
+            1646523,4,2025,,,,,,,,
+            1646525,4,2025,,,,,,,,
+            1646526,4,2025,,,,,,,,
+            1646527,4,2025,,,,,,,,
+            1646528,4,2025,,,,,,,,
+            1646529,4,2025,,,,,,,,
+            1646530,4,2025,,,,,,,,
+            1646531,4,2025,,,,,,,,
+            1646532,4,2025,,,,,,,,
+            1646654,4,2025,,,,,,,,
+            1646533,4,2025,,,,,,,,
+            1646534,4,2025,,,,,,,,
+            1646535,4,2025,,,,,,,,
+            1646536,4,2025,,,,,,,,
+            1646537,4,2025,,,,,,,,
+            1646538,4,2025,,,,,,,,
+            1646539,4,2025,,,,,,,,
+            1646540,4,2025,,,,,,,,
+            1646541,4,2025,,,,,,,,
+            1646542,4,2025,,,,,,,,
+            1646543,4,2025,,,,,,,,
+            1646544,4,2025,,,,,,,,
+            1646545,4,2025,,,,,,,,
+            1646546,4,2025,,,,,,,,
+            1646547,4,2025,,,,,,,,
+            1646548,4,2025,,,,,,,,
+            1646550,4,2025,,,,,,,,
+            1646551,4,2025,,,,,,,,
+            1646552,4,2025,,,,,,,,
+            1646553,4,2025,,,,,,,,
+            1646554,4,2025,,,,,,,,
+            1646653,4,2025,,,,,,,,
+            1646555,4,2025,,,,,,,,
+            1646556,4,2025,,,,,,,,
+            1646557,4,2025,,,,,,,,
+            1646558,4,2025,,,,,,,,
+            1646573,4,2025,,,,,,,,
+            1646479,4,2025,,,,,,,,
+            1646507,4,2025,,,,,,,,
+            1646508,4,2025,,,,,,,,
+            1646559,4,2025,,,,,,,,
+            1646560,4,2025,,,,,,,,
+            1646561,4,2025,,,,,,,,
+            1646562,4,2025,,,,,,,,
+            1646563,4,2025,,,,,,,,
+            1646564,4,2025,,,,,,,,
+            1646565,4,2025,,,,,,,,
+            1646566,4,2025,,,,,,,,
+            1646567,4,2025,,,,,,,,
+            1646568,4,2025,,,,,,,,
+            1646569,4,2025,,,,,,,,
+            1646570,4,2025,,,,,,,,
+            1646571,4,2025,,,,,,,,
+            1646572,4,2025,,,,,,,,
         """
 
-        mapping_item_mock_csv = """ID do Item,Mês,Ano,Categoria,Pilar,Grupo,Op,Op_execao,Multiplicador
-            1646467,9,2023,x,x,Campanha,Quantidade Totalizada Clientes,x,1
-            1646468,9,2023,x,x,Indicação Parceiros,Quantidade Totalizada Clientes,x,1
-            1646469,9,2023,x,x,Facebook/Instagram,Quantidade Totalizada Clientes,x,1
-            1646470,9,2023,x,x,Fachada,Quantidade Totalizada Clientes,x,1
-            1646471,9,2023,x,x,Google,Quantidade Totalizada Clientes,x,1
-            1646472,9,2023,x,x,Indicação Clientes,Quantidade Totalizada Clientes,x,1
-            1646473,9,2023,x,x,Indicação Funcionarios,Quantidade Totalizada Clientes,x,1
-            1646474,9,2023,x,x,Outros,Quantidade Totalizada Clientes,x,1
-            1646475,9,2023,x,x,x,Quantidade Totalizada Clientes Ativos,x,1
-            1646476,9,2023,x,x,x,Quantidade Totalizada Clientes,x,1
-            1646477,9,2023,x,x,x,x,Consultas/Cirurgias,1
-            1646478,9,2023,x,x,x,x,Consultas/Internação,1
-            1646479,9,2023,x,x,x,x,x,1
-            1646480,9,2023,x,x,x,x,Exames/Consultas,1
-            1646481,9,2023,x,PetShop,Acessórios,Faturamento Bruto,x,1
-            1646482,9,2023,x,PetShop,Alimentos,Faturamento Bruto,x,1
-            1646483,9,2023,B&T+P&S,Banho e Tosa,x,Faturamento Bruto,x,1
-            1646484,9,2023,B&T+P&S,x,x,Faturamento Bruto,x,1
-            1646485,9,2023,x,Banho e Tosa,Banho,Faturamento Bruto,x,1
-            1646486,9,2023,Clí+,Cirurgia,x,Faturamento Bruto,x,1
-            1646487,9,2023,x,Cirurgia,Cirurgia,Faturamento Bruto,x,1
-            1646488,9,2023,Clí+,x,x,Faturamento Bruto,x,1
-            1646489,9,2023,Clí+,Clínica,x,Faturamento Bruto,x,1
-            1646490,9,2023,x,Clínica,Consulta,Faturamento Bruto,x,1
-            1646491,9,2023,x,Internação,Diária,Faturamento Bruto,x,1
-            1646492,9,2023,Clí+,Exames,x,Faturamento Bruto,x,1
-            1646493,9,2023,x,Exames,Imagem,Faturamento Bruto,x,1
-            1646494,9,2023,x,Exames,Laboratório,Faturamento Bruto,x,1
-            1646496,9,2023,Clí+,Internação,x,Faturamento Bruto,x,1
-            1646497,9,2023,x,PetShop,Farmácia,Faturamento Bruto,x,1
-            1646498,9,2023,x,x,x,Faturamento Médio por Clientes,x,1
-            1646499,9,2023,x,Banho e Tosa,Outros BT,Faturamento Bruto,x,1
-            1646500,9,2023,B&T+P&S,PetShop,x,Faturamento Bruto,x,1
-            1646501,9,2023,x,Cirurgia,Procedimentos Cirurgico,Faturamento Bruto,x,1
-            1646502,9,2023,x,Clínica,Procedimentos Clínico,Faturamento Bruto,x,1
-            1646503,9,2023,x,Internação,Procedimentos Internação,Faturamento Bruto,x,1
-            1646504,9,2023,x,Banho e Tosa,Tosa,Faturamento Bruto,x,1
-            1646505,9,2023,x,x,x,Faturamento Bruto,x,1
-            1646652,9,2023,x,Banho e Tosa,Transporte,Faturamento Bruto,x,1
-            1646506,9,2023,x,Clínica,Vacina,Faturamento Bruto,x,1
-            1646507,9,2023,x,x,x,x,x,1
-            1646508,9,2023,x,x,x,x,Inadimplencia do Faturamento Bruto,1
-            1646509,9,2023,x,x,x,Preço Médio,x,1
-            1646510,9,2023,x,PetShop,Acessórios,Preço Médio,x,1
-            1646511,9,2023,x,PetShop,Alimentos,Preço Médio,x,1
-            1646512,9,2023,B&T+P&S,Banho e Tosa,x,Preço Médio,x,1
-            1646513,9,2023,B&T+P&S,x,x,Preço Médio,x,1
-            1646514,9,2023,x,Banho e Tosa,Banho,Preço Médio,x,1
-            1646515,9,2023,Clí+,Cirurgia,x,Preço Médio,x,1
-            1646516,9,2023,x,Cirurgia,Cirurgia,Preço Médio,x,1
-            1646517,9,2023,Clí+,x,x,Preço Médio,x,1
-            1646518,9,2023,Clí+,Clínica,x,Preço Médio,x,1
-            1646519,9,2023,x,Clínica,Consulta,Preço Médio,x,1
-            1646520,9,2023,x,Internação,Diária,Preço Médio,x,1
-            1646521,9,2023,Clí+,Exames,x,Preço Médio,x,1
-            1646522,9,2023,x,Exames,Imagem,Preço Médio,x,1
-            1646523,9,2023,x,Exames,Laboratório,Preço Médio,x,1
-            1646525,9,2023,Clí+,Internação,x,Preço Médio,x,1
-            1646526,9,2023,x,PetShop,Farmácia,Preço Médio,x,1
-            1646527,9,2023,x,Banho e Tosa,Outros BT,Preço Médio,x,1
-            1646528,9,2023,B&T+P&S,PetShop,x,Preço Médio,x,1
-            1646529,9,2023,x,Cirurgia,Procedimentos Cirurgico,Preço Médio,x,1
-            1646530,9,2023,x,Clínica,Procedimentos Clínico,Preço Médio,x,1
-            1646531,9,2023,x,Internação,Procedimentos Internação,Preço Médio,x,1
-            1646532,9,2023,x,Banho e Tosa,Tosa,Preço Médio,x,1
-            1646654,9,2023,x,Banho e Tosa,Transporte,Preço Médio,x,1
-            1646533,9,2023,x,Clínica,Vacina,Preço Médio,x,1
-            1646534,9,2023,x,Clínica,Consulta,Quantidade Totalizada,x,1
-            1646535,9,2023,x,Clínica,Vacina,Quantidade Totalizada,x,1
-            1646536,9,2023,B&T+P&S,Banho e Tosa,x,Quantidade Totalizada,x,1
-            1646537,9,2023,B&T+P&S,x,x,Quantidade Totalizada,x,1
-            1646538,9,2023,x,Banho e Tosa,Banho,Quantidade Totalizada,x,1
-            1646539,9,2023,Clí+,Cirurgia,x,Quantidade Totalizada,x,1
-            1646540,9,2023,x,Cirurgia,Cirurgia,Quantidade Totalizada,x,1
-            1646541,9,2023,x,Cirurgia,Procedimentos Cirurgico,Quantidade Totalizada,x,1
-            1646542,9,2023,Clí+,x,x,Quantidade Totalizada,x,1
-            1646543,9,2023,Clí+,Clínica,x,Quantidade Totalizada,x,1
-            1646544,9,2023,x,Clínica,Procedimentos Clínico,Quantidade Totalizada,x,1
-            1646545,9,2023,x,Internação,Diária,Quantidade Totalizada,x,1
-            1646546,9,2023,Clí+,Exames,x,Quantidade Totalizada,x,1
-            1646547,9,2023,x,Exames,Imagem,Quantidade Totalizada,x,1
-            1646548,9,2023,x,Exames,Laboratório,Quantidade Totalizada,x,1
-            1646550,9,2023,Clí+,Internação,x,Quantidade Totalizada,x,1
-            1646551,9,2023,x,Internação,Procedimentos Internação,Quantidade Totalizada,x,1
-            1646552,9,2023,x,Banho e Tosa,Outros BT,Quantidade Totalizada,x,1
-            1646553,9,2023,x,x,x,Quantidade Totalizada,x,1
-            1646554,9,2023,x,Banho e Tosa,Tosa,Quantidade Totalizada,x,1
-            1646653,9,2023,x,Banho e Tosa,Transporte,Quantidade Totalizada,x,1
-            1646555,9,2023,x,PetShop,Acessórios,Quantidade Totalizada,x,1
-            1646556,9,2023,x,PetShop,Alimentos,Quantidade Totalizada,x,1
-            1646557,9,2023,x,PetShop,Farmácia,Quantidade Totalizada,x,1
-            1646558,9,2023,B&T+P&S,PetShop,x,Quantidade Totalizada,x,1
-            1646559,9,2023,x,x,x,x,x,1
-            1646560,9,2023,x,x,x,x,x,1
-            1646561,9,2023,x,x,x,x,x,1
-            1646562,9,2023,x,x,x,x,x,1
-            1646563,9,2023,x,x,x,x,x,1
-            1646564,9,2023,x,x,x,x,x,1
-            1646565,9,2023,x,x,x,x,x,1
-            1646566,9,2023,x,x,x,x,x,1
-            1646567,9,2023,x,x,x,x,x,1
-            1646568,9,2023,x,x,x,x,x,1
-            1646569,9,2023,x,x,x,x,x,1
-            1646570,9,2023,x,x,x,x,x,1
-            1646571,9,2023,x,x,x,x,x,1
-            1646572,9,2023,x,x,x,x,x,1
-            1646573,9,2023,x,x,x,Tickets Médio,x,1
-            0,,,B&T+P&S,x,x,x,x,1
-            1,,,Clí+,x,x,x,x,1
-            2,,,x,Cirurgia,x,x,x,1
-            3,,,x,Exames,x,x,x,1
-            4,,,x,Clínica,x,x,x,1
-            5,,,x,Internação,x,x,x,1
-            6,,,x,PetShop,x,x,x,1
-            7,,,x,Banho e Tosa,x,x,x,1
-            8,,,x,x,Cirurgia,x,x,1
-            9,,,x,x,Outros BT,x,x,1
-            10,,,x,x,Vacina,x,x,1
-            11,,,x,x,Procedimentos Clínico,x,x,1
-            12,,,x,x,Farmácia,x,x,1
-            13,,,x,x,Procedimentos Internação,x,x,1
-            14,,,x,x,Tosa,x,x,1
-            15,,,x,x,Acessórios,x,x,1
-            16,,,x,x,Laboratório,x,x,1
-            17,,,x,x,Consulta,x,x,1
-            18,,,x,x,Banho,x,x,1
-            19,,,x,x,Transporte,x,x,1
-            20,,,x,x,Imagem,x,x,1
-            21,,,x,x,Alimentos,x,x,1
-            22,,,x,x,Diária,x,x,1
-            23,,,x,x,Procedimentos Cirurgico,x,x,1
-            24,,,x,x,x,Faturamento Bruto,x,1
-            25,,,x,x,x,Faturamento Médio por Clientes,x,1
-            26,,,x,x,x,Preço Médio,x,1
-            27,,,x,x,x,Quantidade Totalizada,x,1
-            28,,,x,x,x,Tickets Médio,x,1
-            29,,,x,x,x,x,Consultas/Cirurgias,1
-            30,,,x,x,x,x,Consultas/Internação,1
-            31,,,x,x,x,x,Exames/Consultas,1
+        mapping_item_mock_csv = """CD_ID_ITEM,TX_CAT,TX_PIL,TX_GRP,TX_OP,TX_OP_EXCE,VL_MLTP
+            1646467,x,x,Campanha,Quantidade Totalizada Clientes,x,1
+            1646468,x,x,Indicação Parceiros,Quantidade Totalizada Clientes,x,1
+            1646469,x,x,Facebook/Instagram,Quantidade Totalizada Clientes,x,1
+            1646470,x,x,Fachada,Quantidade Totalizada Clientes,x,1
+            1646471,x,x,Google,Quantidade Totalizada Clientes,x,1
+            1646472,x,x,Indicação Clientes,Quantidade Totalizada Clientes,x,1
+            1646473,x,x,Indicação Funcionarios,Quantidade Totalizada Clientes,x,1
+            1646474,x,x,Outros,Quantidade Totalizada Clientes,x,1
+            1646475,x,x,x,Quantidade Totalizada Clientes Ativos,x,1
+            1646476,x,x,x,Quantidade Totalizada Clientes,x,1
+            1646477,x,x,x,x,Consultas/Cirurgias,1
+            1646478,x,x,x,x,Consultas/Internação,1
+            1646479,x,x,x,x,x,1
+            1646480,x,x,x,x,Exames/Consultas,1
+            1646481,x,PetShop,Acessórios,Faturamento Bruto,x,1
+            1646482,x,PetShop,Alimentos,Faturamento Bruto,x,1
+            1646483,B&T+P&S,Banho e Tosa,x,Faturamento Bruto,x,1
+            1646484,B&T+P&S,x,x,Faturamento Bruto,x,1
+            1646485,x,Banho e Tosa,Banho,Faturamento Bruto,x,1
+            1646486,Clí+,Cirurgia,x,Faturamento Bruto,x,1
+            1646487,x,Cirurgia,Cirurgia,Faturamento Bruto,x,1
+            1646488,Clí+,x,x,Faturamento Bruto,x,1
+            1646489,Clí+,Clínica,x,Faturamento Bruto,x,1
+            1646490,x,Clínica,Consulta,Faturamento Bruto,x,1
+            1646491,x,Internação,Diária,Faturamento Bruto,x,1
+            1646492,Clí+,Exames,x,Faturamento Bruto,x,1
+            1646493,x,Exames,Imagem,Faturamento Bruto,x,1
+            1646494,x,Exames,Laboratório,Faturamento Bruto,x,1
+            1646496,Clí+,Internação,x,Faturamento Bruto,x,1
+            1646497,x,PetShop,Farmácia,Faturamento Bruto,x,1
+            1646498,x,x,x,Faturamento Médio por Clientes,x,1
+            1646499,x,Banho e Tosa,Outros BT,Faturamento Bruto,x,1
+            1646500,B&T+P&S,PetShop,x,Faturamento Bruto,x,1
+            1646501,x,Cirurgia,Procedimentos Cirurgico,Faturamento Bruto,x,1
+            1646502,x,Clínica,Procedimentos Clínico,Faturamento Bruto,x,1
+            1646503,x,Internação,Procedimentos Internação,Faturamento Bruto,x,1
+            1646504,x,Banho e Tosa,Tosa,Faturamento Bruto,x,1
+            1646505,x,x,x,Faturamento Bruto,x,1
+            1646652,x,Banho e Tosa,Transporte,Faturamento Bruto,x,1
+            1646506,x,Clínica,Vacina,Faturamento Bruto,x,1
+            1646507,x,x,x,x,x,1
+            1646508,x,x,x,x,Inadimplencia do Faturamento Bruto,1
+            1646509,x,x,x,Preço Médio,x,1
+            1646510,x,PetShop,Acessórios,Preço Médio,x,1
+            1646511,x,PetShop,Alimentos,Preço Médio,x,1
+            1646512,B&T+P&S,Banho e Tosa,x,Preço Médio,x,1
+            1646513,B&T+P&S,x,x,Preço Médio,x,1
+            1646514,x,Banho e Tosa,Banho,Preço Médio,x,1
+            1646515,Clí+,Cirurgia,x,Preço Médio,x,1
+            1646516,x,Cirurgia,Cirurgia,Preço Médio,x,1
+            1646517,Clí+,x,x,Preço Médio,x,1
+            1646518,Clí+,Clínica,x,Preço Médio,x,1
+            1646519,x,Clínica,Consulta,Preço Médio,x,1
+            1646520,x,Internação,Diária,Preço Médio,x,1
+            1646521,Clí+,Exames,x,Preço Médio,x,1
+            1646522,x,Exames,Imagem,Preço Médio,x,1
+            1646523,x,Exames,Laboratório,Preço Médio,x,1
+            1646525,Clí+,Internação,x,Preço Médio,x,1
+            1646526,x,PetShop,Farmácia,Preço Médio,x,1
+            1646527,x,Banho e Tosa,Outros BT,Preço Médio,x,1
+            1646528,B&T+P&S,PetShop,x,Preço Médio,x,1
+            1646529,x,Cirurgia,Procedimentos Cirurgico,Preço Médio,x,1
+            1646530,x,Clínica,Procedimentos Clínico,Preço Médio,x,1
+            1646531,x,Internação,Procedimentos Internação,Preço Médio,x,1
+            1646532,x,Banho e Tosa,Tosa,Preço Médio,x,1
+            1646654,x,Banho e Tosa,Transporte,Preço Médio,x,1
+            1646533,x,Clínica,Vacina,Preço Médio,x,1
+            1646534,x,Clínica,Consulta,Quantidade Totalizada,x,1
+            1646535,x,Clínica,Vacina,Quantidade Totalizada,x,1
+            1646536,B&T+P&S,Banho e Tosa,x,Quantidade Totalizada,x,1
+            1646537,B&T+P&S,x,x,Quantidade Totalizada,x,1
+            1646538,x,Banho e Tosa,Banho,Quantidade Totalizada,x,1
+            1646539,Clí+,Cirurgia,x,Quantidade Totalizada,x,1
+            1646540,x,Cirurgia,Cirurgia,Quantidade Totalizada,x,1
+            1646541,x,Cirurgia,Procedimentos Cirurgico,Quantidade Totalizada,x,1
+            1646542,Clí+,x,x,Quantidade Totalizada,x,1
+            1646543,Clí+,Clínica,x,Quantidade Totalizada,x,1
+            1646544,x,Clínica,Procedimentos Clínico,Quantidade Totalizada,x,1
+            1646545,x,Internação,Diária,Quantidade Totalizada,x,1
+            1646546,Clí+,Exames,x,Quantidade Totalizada,x,1
+            1646547,x,Exames,Imagem,Quantidade Totalizada,x,1
+            1646548,x,Exames,Laboratório,Quantidade Totalizada,x,1
+            1646550,Clí+,Internação,x,Quantidade Totalizada,x,1
+            1646551,x,Internação,Procedimentos Internação,Quantidade Totalizada,x,1
+            1646552,x,Banho e Tosa,Outros BT,Quantidade Totalizada,x,1
+            1646553,x,x,x,Quantidade Totalizada,x,1
+            1646554,x,Banho e Tosa,Tosa,Quantidade Totalizada,x,1
+            1646653,x,Banho e Tosa,Transporte,Quantidade Totalizada,x,1
+            1646555,x,PetShop,Acessórios,Quantidade Totalizada,x,1
+            1646556,x,PetShop,Alimentos,Quantidade Totalizada,x,1
+            1646557,x,PetShop,Farmácia,Quantidade Totalizada,x,1
+            1646558,B&T+P&S,PetShop,x,Quantidade Totalizada,x,1
+            1646559,x,x,x,x,x,1
+            1646560,x,x,x,x,x,1
+            1646561,x,x,x,x,x,1
+            1646562,x,x,x,x,x,1
+            1646563,x,x,x,x,x,1
+            1646564,x,x,x,x,x,1
+            1646565,x,x,x,x,x,1
+            1646566,x,x,x,x,x,1
+            1646567,x,x,x,x,x,1
+            1646568,x,x,x,x,x,1
+            1646569,x,x,x,x,x,1
+            1646570,x,x,x,x,x,1
+            1646571,x,x,x,x,x,1
+            1646572,x,x,x,x,x,1
+            1646573,x,x,x,Tickets Médio,x,1
+            0,B&T+P&S,x,x,x,x,1
+            1,Clí+,x,x,x,x,1
+            2,x,Cirurgia,x,x,x,1
+            3,x,Exames,x,x,x,1
+            4,x,Clínica,x,x,x,1
+            5,x,Internação,x,x,x,1
+            6,x,PetShop,x,x,x,1
+            7,x,Banho e Tosa,x,x,x,1
+            8,x,x,Cirurgia,x,x,1
+            9,x,x,Outros BT,x,x,1
+            10,x,x,Vacina,x,x,1
+            11,x,x,Procedimentos Clínico,x,x,1
+            12,x,x,Farmácia,x,x,1
+            13,x,x,Procedimentos Internação,x,x,1
+            14,x,x,Tosa,x,x,1
+            15,x,x,Acessórios,x,x,1
+            16,x,x,Laboratório,x,x,1
+            17,x,x,Consulta,x,x,1
+            18,x,x,Banho,x,x,1
+            19,x,x,Transporte,x,x,1
+            20,x,x,Imagem,x,x,1
+            21,x,x,Alimentos,x,x,1
+            22,x,x,Diária,x,x,1
+            23,x,x,Procedimentos Cirurgico,x,x,1
+            24,x,x,x,Faturamento Bruto,x,1
+            25,x,x,x,Faturamento Médio por Clientes,x,1
+            26,x,x,x,Preço Médio,x,1
+            27,x,x,x,Quantidade Totalizada,x,1
+            28,x,x,x,Tickets Médio,x,1
+            29,x,x,x,x,Consultas/Cirurgias,1
+            30,x,x,x,x,Consultas/Internação,1
+            31,x,x,x,x,Exames/Consultas,1
         """
 
-        meds_mock_csv = """Data e hora,med,op
+        meds_mock_csv = """TS_DT_HR_VND,VL_MED,TX_OPS
             2025-04-30,46.0,"('Consultas/Cirurgias',)"
             2025-03-31,158.0,"('Consultas/Cirurgias',)"
             2025-04-30,59.0,"('Consultas/Internação',)"
@@ -378,15 +378,15 @@ class TestExport(unittest.TestCase):
             2025-04-30,0.0,"('Tickets Médio', 'NULL', 'NULL')"
         """
 
-        df_export_mock = pd.read_csv(StringIO(export_mock_csv)).set_index("ID do Item").astype({"Medição": str})
+        df_export_mock = pd.read_csv(StringIO(export_mock_csv)).set_index("CD_ID_ITEM").astype({"VL_MED": str})
 
-        df_mapping_item_mock = pd.read_csv(StringIO(mapping_item_mock_csv)).set_index("ID do Item")
-        df_meds_mock = pd.read_csv(StringIO(meds_mock_csv), converters = {"op": ast.literal_eval})
-        df_meds_mock["Data e hora"] = pd.to_datetime(df_meds_mock["Data e hora"])
+        df_mapping_item_mock = pd.read_csv(StringIO(mapping_item_mock_csv)).set_index("CD_ID_ITEM")
+        df_meds_mock = pd.read_csv(StringIO(meds_mock_csv), converters = {"TX_OPS": ast.literal_eval})
+        df_meds_mock["TS_DT_HR_VND"] = pd.to_datetime(df_meds_mock["TS_DT_HR_VND"])
         end_date = datetime(2025, 5, 1, 0, 0)
         df_export_meds = med(df_export_mock, df_meds_mock, df_mapping_item_mock, end_date)
 
-        export_expected_csv = """ID do Item,Mês,Ano,Medição,Fx Verde Inf/Previsto,Fx Verde Sup,Fx Vermelha Inf,Fx Vermelha Sup,Fx Cliente Inf,Fx Cliente Sup
+        export_expected_csv = """CD_ID_ITEM,VL_MES,VL_ANO,VL_MED,TX_FX_VERD_INF_PREV,TX_FX_VERD_SUP,TX_FX_VERM_INF,TX_FX_VERM_SUP,TX_FX_CLNT_INF,TX_FX_CLNT_SUP,TX_ITEM,TX_IND,TX_USUA,TX_TIPO,TX_AUX,TX_TOTTX_IN_MED,TX_CLDR
             1646467,4,2025,0.0,,,,,,
             1646468,4,2025,5.0,,,,,,
             1646469,4,2025,2.0,,,,,,
@@ -496,7 +496,7 @@ class TestExport(unittest.TestCase):
             1646572,4,2025,,,,,,,
         """
 
-        df_export_meds_expected = pd.read_csv(StringIO(export_expected_csv)).set_index("ID do Item")
+        df_export_meds_expected = pd.read_csv(StringIO(export_expected_csv)).set_index("CD_ID_ITEM")
 
         pd.testing.assert_frame_equal(df_export_meds, df_export_meds_expected)
 

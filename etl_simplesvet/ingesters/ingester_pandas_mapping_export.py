@@ -22,14 +22,37 @@ class IngesterPandasMappingExport(IngesterPandasXLSX):
         mapping_columns_keys = list(MAPPING_COLUMNS.keys())
 
         self._options = {
-            "index_col": mapping_columns_keys[0],
             "usecols": mapping_columns_keys,
             "dtype": MAPPING_COLUMNS
         }
 
+    def _rename_columns(self, df):
+        RENAME_MAP = {
+            "ID do Item": "CD_ID_ITEM",
+            "Mês": "VL_MES",
+            "Ano": "VL_ANO",
+            "Item": "TX_ITEM",
+            "Categoria": "TX_CAT",
+            "Pilar": "TX_PIL",
+            "Grupo": "TX_GRP",
+            "Op": "TX_OP",
+            "Op_execao": "TX_OP_EXCE",
+            "Multiplicador": "VL_MLTP"
+        }
+        return df.rename(columns = RENAME_MAP)
+
+    def _treat_frame(self, df):
+        df = df.copy()
+
+        return df \
+                .drop(["VL_MES", "VL_ANO", "TX_ITEM"], axis = "columns") \
+                .set_index("CD_ID_ITEM")
+
     def ingest(self):
         df = super() \
             .pass_options(**self._options) \
-            ._read()
+            ._read() \
+            .pipe(self._rename_columns) \
+            .pipe(self._treat_frame)
 
         return df

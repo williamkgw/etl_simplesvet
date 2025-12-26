@@ -25,22 +25,22 @@ class  StepTransformPandasDataAnalysisSales(Step):
         sales_df = enrich_sales_df(sales_df, mapping_sales_df)
 
         # sales output diagnosis
-        sales_missing_df = sales_df[sales_df[['__pilar', '__grupo']].isna().any(axis = 1)]
+        sales_missing_df = sales_df[sales_df[["TX_PIL", "TX_GRP"]].isna().any(axis = "columns")]
 
         # grouped sales
-        sales_groupedby_grupo = sales_df.groupby([pd.Grouper(key = 'Data e hora', freq = '1ME'), '__pilar' ,'__grupo'], dropna = False)
-        sales_groupedby_pilar = sales_df.groupby([pd.Grouper(key = 'Data e hora', freq = '1ME'), '__categoria' ,'__pilar'], dropna = False)
-        sales_groupedby_categoria = sales_df.groupby([pd.Grouper(key = 'Data e hora', freq = '1ME'), '__categoria'], dropna = False)
+        sales_groupedby_grupo = sales_df.groupby([pd.Grouper(key = "TS_DT_HR_VND", freq = "1ME"), "TX_PIL" ,"TX_GRP"], dropna = False)
+        sales_groupedby_pilar = sales_df.groupby([pd.Grouper(key = "TS_DT_HR_VND", freq = "1ME"), "TX_CAT" ,"TX_PIL"], dropna = False)
+        sales_groupedby_categoria = sales_df.groupby([pd.Grouper(key = "TS_DT_HR_VND", freq = "1ME"), "TX_CAT"], dropna = False)
         sales_groupedby_tempo = sales_df \
-                                .dropna(subset = ['__categoria', '__pilar'], how = "all") \
-                                .groupby([pd.Grouper(key = 'Data e hora', freq = '1ME')])
+                                .dropna(subset = ["TX_CAT", "TX_PIL"], how = "all") \
+                                .groupby([pd.Grouper(key = "TS_DT_HR_VND", freq = "1ME")])
 
         agg_grupo_df = get_agg_grupo_df(sales_groupedby_grupo)
         agg_pilar_df = get_agg_pilar_df(sales_groupedby_pilar)
         agg_categoria_df = get_agg_categoria_df(sales_groupedby_categoria)
         agg_tempo_df = get_agg_tempo_df(sales_groupedby_tempo)
         exception_df = get_exception_df(sales_groupedby_grupo)
-        unique_mapping_df = mapping_sales_df.groupby(['Categoria', 'Pilar', 'Grupo']).size()
+        unique_mapping_df = mapping_sales_df.groupby(["TX_CAT", "TX_PIL", "TX_GRP"]).size()
         inadimplencia_df = get_inadimplencia_df(sales_df, end_date)
         return {
             **kwargs,

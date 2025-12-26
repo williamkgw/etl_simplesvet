@@ -15,29 +15,33 @@ class IngesterPandasMappingClients(IngesterPandasXLSX):
         mapping_columns_keys = list(MAPPING_COLUMNS.keys())
 
         self._options = {
-            "index_col": mapping_columns_keys[0],
             "usecols": mapping_columns_keys,
             "dtype": MAPPING_COLUMNS
         }
 
-    def _treat_mapping_clients(self, mapping_clients_df):
-        # removing empty rows
-        missing_mapping_clients_df = mapping_clients_df[mapping_clients_df.isna().all(axis=1)]
-        mapping_clients_df = mapping_clients_df.dropna(how = 'all', axis = 0)
+    def _rename_columns(self, df):
+        RENAME_MAP = {
+            "Origem": "TX_ORGM",
+            "Grupo": "TX_GRP"
+        }
 
-        # configuring the dataframes to catch case sensitive
-        mapping_clients_df.index = mapping_clients_df.index.str.lower()
+        return df.rename(columns = RENAME_MAP)
 
-        # removing duplicated index
-        mapping_clientes_duplicated_df = mapping_clients_df[mapping_clients_df.index.duplicated(keep = False)]
-        mapping_clients_df = mapping_clients_df[~mapping_clients_df.index.duplicated(keep='last')]
+    def _treat_frame(self, df):
+        df = df.copy()
 
-        return mapping_clients_df
+        df = df.set_index("TX_ORGM")
+        df = df.dropna(how = 'all', axis = "rows")
+        df.index = df.index.str.lower()
+        df = df[~df.index.duplicated(keep='last')]
+
+        return df
 
     def ingest(self):
         df = super() \
             .pass_options(**self._options) \
             ._read() \
-            .pipe(self._treat_mapping_clients)
+            .pipe(self._rename_columns) \
+            .pipe(self._treat_frame)
 
         return df
