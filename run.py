@@ -6,8 +6,6 @@ from etl_simplesvet.steps.step_ingest_pandas_export import StepIngestPandasExpor
 from etl_simplesvet.steps.step_transform_pandas_export import StepTransformPandasExport
 from etl_simplesvet.steps.step_persister_pandas_export import StepPersisterPandasExport
 
-from etl_simplesvet.steps.step_other import StepOther
-
 def main():
     ingestion_data_analysis = StepIngestPandasDataAnalysis()
     transform_sales = StepTransformPandasDataAnalysisSales()
@@ -15,8 +13,6 @@ def main():
     ingestion_export = StepIngestPandasExport()
     transform_export = StepTransformPandasExport()
     persister_export = StepPersisterPandasExport()
-
-    other = StepOther()
 
     pipeline = Pipeline()
     pipeline \
